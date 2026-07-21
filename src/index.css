@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* 1. THEME OVERRIDES (Equivalent to MUI's createTheme) */
+@theme {
+  --color-sci-cyan: #00ffcc;
+  --color-sci-bg: #050505;
+  --color-glass-bg: rgba(0, 20, 20, 0.6);
+  --color-glass-border: rgba(0, 255, 204, 0.3);
+
+  --font-mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 2. BASE STYLES */
+@layer base {
+  body {
+    background-color: var(--color-sci-bg);
+    color: var(--color-sci-cyan);
+    font-family: var(--font-mono);
+    overflow-x: hidden;
+    margin: 0;
+  }
+}
+
+/* 3. COMPONENT CLASSES (MUI-style class separation) */
+@layer components {
+  /* The 3D Canvas Layer */
+  .canvas-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* The UI Overlay Layer */
+  .ui-layer {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    padding: 10vw;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  /* Futuristic Glassmorphism Card (Equivalent to MUI <Card />) */
+  .glass-card {
+    background-color: var(--color-glass-bg);
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+    border-color: var(--color-sci-cyan);
+  }
+
+  /* Glitch Text Element (Equivalent to MUI <Typography variant="h1" />) */
+  .text-glitch {
+    font-size: 3rem;
+    font-weight: bold;
+    text-shadow:
+      2px 2px 0px rgba(0, 255, 255, 0.5),
+      -2px -2px 0px rgba(255, 0, 255, 0.5);
+    letter-spacing: 0.1em;
+  }
+}
