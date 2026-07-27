@@ -1,8 +1,26 @@
-import { useMemo } from "react";
 import { QuadraticBezierLine } from "@react-three/drei";
 import * as THREE from "three";
 import { useAppStore } from "../../store/useAppStore";
 import { NEURAL_LINKS, PROJECT_ANCHORS, LOG_ANCHORS } from "./sceneData";
+
+// Static per-link geometry — anchors never change at runtime, so this is
+// computed once at module scope rather than recomputed on every render.
+const LINKS = NEURAL_LINKS.filter(
+  (link) => PROJECT_ANCHORS[link.projectId] && LOG_ANCHORS[link.logId]
+).map((link) => {
+  const start = PROJECT_ANCHORS[link.projectId];
+  const end = LOG_ANCHORS[link.logId];
+  return {
+    ...link,
+    start,
+    end,
+    mid: new THREE.Vector3(
+      (start[0] + end[0]) / 2,
+      (start[1] + end[1]) / 2 + 0.8,
+      (start[2] + end[2]) / 2
+    ),
+  };
+});
 
 /**
  * Renders glowing connector lines between project and blog-log anchor
@@ -17,26 +35,9 @@ export const NeuralLinks = () => {
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const activeLinkId = useAppStore((state) => state.activeLinkId);
 
-  const links = useMemo(
-    () =>
-      NEURAL_LINKS.filter((link) => PROJECT_ANCHORS[link.projectId] && LOG_ANCHORS[link.logId]).map(
-        (link) => ({
-          ...link,
-          start: PROJECT_ANCHORS[link.projectId],
-          end: LOG_ANCHORS[link.logId],
-          mid: new THREE.Vector3(
-            (PROJECT_ANCHORS[link.projectId][0] + LOG_ANCHORS[link.logId][0]) / 2,
-            (PROJECT_ANCHORS[link.projectId][1] + LOG_ANCHORS[link.logId][1]) / 2 + 0.8,
-            (PROJECT_ANCHORS[link.projectId][2] + LOG_ANCHORS[link.logId][2]) / 2
-          ),
-        })
-      ),
-    []
-  );
-
   return (
     <>
-      {links.map((link) => {
+      {LINKS.map((link) => {
         const isActive =
           hoveredProject === link.projectId ||
           hoveredNode === link.projectId ||

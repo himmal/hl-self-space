@@ -3,7 +3,7 @@ import { useAppStore } from "../../store/useAppStore";
 import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
-import { NEURAL_LINKS } from "../3d/sceneData";
+import { PROJECT_TO_LOG, LOG_TO_PROJECT } from "../3d/sceneData";
 
 const PROJECTS = [
   {
@@ -71,14 +71,12 @@ export const Overlay = () => {
 
   const handleProjectHover = (id: string | null) => {
     setHoveredProject(id);
-    const link = id ? NEURAL_LINKS.find((entry) => entry.projectId === id) : undefined;
-    setActiveLinkId(link ? link.logId : null);
+    setActiveLinkId(id ? (PROJECT_TO_LOG[id] ?? null) : null);
   };
 
   const handleLogHover = (id: string | null) => {
     setHoveredLog(id);
-    const link = id ? NEURAL_LINKS.find((entry) => entry.logId === id) : undefined;
-    setActiveLinkId(link ? link.projectId : null);
+    setActiveLinkId(id ? (LOG_TO_PROJECT[id] ?? null) : null);
   };
 
   return (

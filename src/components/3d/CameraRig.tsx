@@ -30,6 +30,8 @@ export const CameraRig = () => {
   const targetFovRef = useRef(60);
   const baseLookAtRef = useRef(new THREE.Vector3(0, 0, 0));
   const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
+  const targetLookAtRef = useRef(new THREE.Vector3(0, 0, 0));
+  const hoveredAnchorVecRef = useRef(new THREE.Vector3(0, 0, 0));
   const hasInitRef = useRef(false);
 
   // Kick off a new curve-based journey whenever the active section changes.
@@ -77,9 +79,9 @@ export const CameraRig = () => {
       (hoveredLog && LOG_ANCHORS[hoveredLog]) ||
       null;
 
-    const targetLookAt = baseLookAtRef.current.clone();
+    const targetLookAt = targetLookAtRef.current.copy(baseLookAtRef.current);
     if (hoveredAnchor) {
-      targetLookAt.lerp(new THREE.Vector3(...hoveredAnchor), 0.25);
+      targetLookAt.lerp(hoveredAnchorVecRef.current.set(...hoveredAnchor), 0.25);
     }
 
     const alpha = 1 - Math.exp(-LOOKAT_DAMP_LAMBDA * delta);

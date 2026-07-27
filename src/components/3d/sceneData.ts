@@ -34,6 +34,15 @@ export const NEURAL_LINKS: { projectId: string; logId: string }[] = [
   { projectId: "proj-2", logId: "log-2" },
 ];
 
+// Lookup maps derived from `NEURAL_LINKS` for O(1) hover-highlight lookups
+// (avoids re-scanning the links array on every hover event).
+export const PROJECT_TO_LOG: Record<string, string> = Object.fromEntries(
+  NEURAL_LINKS.map((link) => [link.projectId, link.logId])
+);
+export const LOG_TO_PROJECT: Record<string, string> = Object.fromEntries(
+  NEURAL_LINKS.map((link) => [link.logId, link.projectId])
+);
+
 // Collectible "data fragment" hub anchors — additional 3D-collectible
 // fragments layered on top of the per-section fragments awarded on first
 // visit (see `Overlay.tsx`).
