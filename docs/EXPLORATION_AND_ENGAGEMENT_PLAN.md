@@ -71,8 +71,10 @@ sections and finding connections, increasing time-on-site and section coverage.
       card in the UI highlights its linked blog "log entry" node in 3D (and
       vice versa) via a shared `activeLinkId` store field — encourages jumping
       between Projects and Blog/Log.
-- [ ] **Secret Terminal Command Palette** — Add a hidden `Ctrl+Shift+K` (or a
-      visible "terminal" HUD icon as a discoverable alternative entry point)
+- [ ] **Secret Terminal Command Palette** — Add a hidden `Ctrl+'` shortcut
+      (chosen to avoid common browser/devtools shortcut collisions, e.g.
+      `Ctrl+Shift+K` opens the Firefox Web Console) alongside a visible
+      "terminal" HUD icon as a discoverable alternative entry point — a
       "terminal" overlay (`components/ui/CommandTerminal.tsx`) supporting
       Easter-egg commands like `whoami`, `sudo unlock`, `cd /projects`,
       `cat manifesto.txt`. Purely a DOM component reading/writing Zustand state
@@ -164,10 +166,15 @@ interface AppState {
   setHoveredProject: (id) => void;
 
   // proposed additions
-  hoveredNode: string | null;          // links 3D node hover <-> UI card hover
-                                        // (distinct from `hoveredProject`,
-                                        // which tracks the UI project-card
-                                        // hover that this mirrors in 3D)
+  hoveredNode: string | null;          // 3D-side hover state, set by raycasting
+                                        // in the canvas layer; UI components
+                                        // read it to highlight the matching
+                                        // card. `hoveredProject` is the
+                                        // UI-side counterpart (set by DOM
+                                        // `onMouseEnter`/`onMouseLeave`), which
+                                        // the 3D layer reads to highlight the
+                                        // matching node. Each is written by
+                                        // its own layer and read by the other.
   setHoveredNode: (id: string | null) => void;
 
   activeLinkId: string | null;         // neural node link highlighting
@@ -218,7 +225,7 @@ Rules to enforce (per `docs/ARCHITECTURE.md` §3):
 | New Component | Responsibility |
 |---|---|
 | `StatusHUD.tsx` | Fixed-position exploration progress, signal meter, section-visited indicators. |
-| `CommandTerminal.tsx` | Hidden `Ctrl+K` command palette for secret commands. |
+| `CommandTerminal.tsx` | Hidden `Ctrl+'` command palette for secret commands. |
 | `CyberCursor.tsx` | Magnetic custom cursor using rAF, not React state. |
 | `CrtOverlay.tsx` | Scanline/vignette overlay toggled by `crtModeEnabled`. |
 | `AudioManager.tsx` (or a `hooks/useAudioManager.ts`) | Lazily-initialized Web Audio context, exposes `playSfx(name)`. |
