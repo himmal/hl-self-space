@@ -71,7 +71,8 @@ sections and finding connections, increasing time-on-site and section coverage.
       card in the UI highlights its linked blog "log entry" node in 3D (and
       vice versa) via a shared `activeLinkId` store field — encourages jumping
       between Projects and Blog/Log.
-- [ ] **Secret Terminal Command Palette** — Add a hidden `Ctrl+K` / backtick
+- [ ] **Secret Terminal Command Palette** — Add a hidden `Ctrl+Shift+K` (or a
+      visible "terminal" HUD icon as a discoverable alternative entry point)
       "terminal" overlay (`components/ui/CommandTerminal.tsx`) supporting
       Easter-egg commands like `whoami`, `sudo unlock`, `cd /projects`,
       `cat manifesto.txt`. Purely a DOM component reading/writing Zustand state
@@ -81,7 +82,7 @@ sections and finding connections, increasing time-on-site and section coverage.
       meshes across different sections (rendered as part of the 3D scene, one
       per section). Visiting a section for the first time (or clicking the
       fragment) marks it "collected" in a persisted Zustand slice
-      (`collectedFragments: Set<string>`, persisted via `zustand/middleware`
+      (`collectedFragments: string[]`, persisted via `zustand/middleware`
       `persist` to `localStorage`). A HUD indicator shows collection progress
       (e.g., "3/5 FRAGMENTS RECOVERED"), incentivizing full-site exploration.
 - [ ] **Exploration Progress HUD** — A fixed, low-opacity corner HUD
@@ -92,6 +93,11 @@ sections and finding connections, increasing time-on-site and section coverage.
       "About — Classified" panel behind full exploration (all fragments
       collected), rendered conditionally in `Overlay.tsx` based on store state.
       Reinforces the incentive loop without requiring backend/auth.
+- [ ] **Accessible Discovery Trigger** — Alongside the terminal palette below,
+      ensure a visible, discoverable affordance (e.g., a small HUD button or
+      documented on-screen hint) exists for keyboard-shortcut-gated features,
+      so exploration mechanics remain accessible to users unaware of hidden
+      shortcuts.
 - [ ] **Cross-Section "Signal Ping"** — When hovering a project tagged with a
       technology, ping related blog posts (and vice versa) with a brief pulse
       animation on their nav button (`className` transition, no 3D needed) —
@@ -159,6 +165,9 @@ interface AppState {
 
   // proposed additions
   hoveredNode: string | null;          // links 3D node hover <-> UI card hover
+                                        // (distinct from `hoveredProject`,
+                                        // which tracks the UI project-card
+                                        // hover that this mirrors in 3D)
   setHoveredNode: (id: string | null) => void;
 
   activeLinkId: string | null;         // neural node link highlighting
