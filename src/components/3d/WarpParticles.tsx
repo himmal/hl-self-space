@@ -38,6 +38,8 @@ const WarpMaterialImpl = shaderMaterial(
 
 extend({ WarpMaterialImpl });
 
+type WarpMaterial = InstanceType<typeof WarpMaterialImpl>;
+
 declare module "@react-three/fiber" {
   interface ThreeElements {
     warpMaterialImpl: Record<string, unknown>;
@@ -53,7 +55,7 @@ declare module "@react-three/fiber" {
  */
 export const WarpParticles = () => {
   const isTransitioning = useAppStore((state) => state.isTransitioning);
-  const materialRef = useRef<InstanceType<typeof WarpMaterialImpl> | null>(null);
+  const materialRef = useRef<WarpMaterial | null>(null);
   const progressRef = useRef(0);
 
   const [positions, stretches] = useMemo(() => {

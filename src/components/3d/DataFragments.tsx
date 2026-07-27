@@ -5,6 +5,17 @@ import { useAppStore } from "../../store/useAppStore";
 import { useAudioManager } from "../../hooks/useAudioManager";
 import { FRAGMENT_HUBS } from "./sceneData";
 
+// Pulse animation tuning for uncollected fragments (collected ones settle to
+// a fixed, dimmer `COLLECTED_SCALE`).
+const COLLECTED_SCALE = 0.55;
+const UNCOLLECTED_BASE_SCALE = 0.85;
+const PULSE_AMPLITUDE = 0.15;
+const PULSE_FREQUENCY = 2;
+// Per-fragment phase offset so hubs don't all pulse in lockstep.
+const PULSE_PHASE_STEP = 1.7;
+const ROTATION_SPEED_Y = 0.6;
+const ROTATION_SPEED_X = 0.3;
+
 /**
  * Renders collectible "data fragment" meshes scattered across the grid.
  * Clicking an uncollected fragment (via R3F raycasting) marks it collected
@@ -30,10 +41,13 @@ export const DataFragments = () => {
       const mesh = meshRefs.current[i];
       if (!mesh) return;
       const collected = collectedFragments.includes(hub.id);
-      const pulse = collected ? 0.55 : 0.85 + Math.sin(time * 2 + i * 1.7) * 0.15;
+      const pulse = collected
+        ? COLLECTED_SCALE
+        : UNCOLLECTED_BASE_SCALE +
+          Math.sin(time * PULSE_FREQUENCY + i * PULSE_PHASE_STEP) * PULSE_AMPLITUDE;
       mesh.scale.setScalar(pulse);
-      mesh.rotation.y = time * 0.6 + i;
-      mesh.rotation.x = time * 0.3;
+      mesh.rotation.y = time * ROTATION_SPEED_Y + i;
+      mesh.rotation.x = time * ROTATION_SPEED_X;
     });
   });
 
