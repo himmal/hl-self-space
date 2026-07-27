@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node scripts/copy-404.js",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css}\"",
     "preview": "vite preview"
@@ -19,6 +18,7 @@
     "motion": "^11.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1",
     "three": "^0.185.1",
     "zustand": "^5.0.0"
   },
