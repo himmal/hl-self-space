@@ -14,3 +14,4 @@ if (!existsSync(indexPath)) {
 }
 
 copyFileSync(indexPath, notFoundPath);
+console.log("Created 404.html for SPA routing fallback.");
