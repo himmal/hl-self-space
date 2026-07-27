@@ -46,7 +46,14 @@ export const CommandTerminal = () => {
     let output = `Unknown command: ${command}`;
 
     if (command === "help") {
-      output = `Available: whoami, sudo unlock, ${SECTIONS.map((s) => `cd /${s}`).join(", ")}, cat manifesto.txt, clear`;
+      const availableCommands = [
+        "whoami",
+        "sudo unlock",
+        ...SECTIONS.map((s) => `cd /${s}`),
+        "cat manifesto.txt",
+        "clear",
+      ];
+      output = `Available: ${availableCommands.join(", ")}`;
     } else if (command === "whoami") {
       output = "himmal // software engineer // exploring the neural grid";
     } else if (command === "sudo unlock") {
