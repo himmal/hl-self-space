@@ -95,9 +95,10 @@ sections and finding connections, increasing time-on-site and section coverage.
       "About — Classified" panel behind full exploration (all fragments
       collected), rendered conditionally in `Overlay.tsx` based on store state.
       Reinforces the incentive loop without requiring backend/auth.
-- [ ] **Accessible Discovery Trigger** — Alongside the terminal palette below,
-      ensure a visible, discoverable affordance (e.g., a small HUD button or
-      documented on-screen hint) exists for keyboard-shortcut-gated features,
+- [ ] **Accessible Discovery Trigger** — Alongside the terminal palette
+      described above, ensure a visible, discoverable affordance (e.g., a
+      small HUD button or documented on-screen hint) exists for
+      keyboard-shortcut-gated features,
       so exploration mechanics remain accessible to users unaware of hidden
       shortcuts.
 - [ ] **Cross-Section "Signal Ping"** — When hovering a project tagged with a
@@ -181,7 +182,7 @@ interface AppState {
   isTransitioning: boolean;            // drives particle warp shader uniform
   setTransitioning: (v: boolean) => void;
 
-  collectedFragments: string[];        // persisted via zustand/middleware `persist`
+  collectedFragments: string[];        // persisted via `zustand/middleware` using `persist`
   collectFragment: (id: string) => void;
 
   audioEnabled: boolean;
