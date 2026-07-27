@@ -1,14 +1,33 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, type Section } from "../../store/useAppStore";
+
+// Section-themed grid palettes — cyan/blue for intro, magenta/violet for
+// projects, amber/green for blog. Kept module-level to avoid re-allocation.
+const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: string }> = {
+  intro: { colorA: "#00ffcc", colorB: "#0066ff", fog: "#001a1a" },
+  projects: { colorA: "#ff2fd0", colorB: "#7a1fff", fog: "#1a0022" },
+  blog: { colorA: "#ffb020", colorB: "#33cc66", fog: "#1a1400" },
+};
 
 export const Scene = () => {
   const groupRef = useRef<THREE.Group>(null);
+  const fogRef = useRef<THREE.FogExp2>(null);
   const activeSection = useAppStore((state) => state.activeSection);
+  const palette = useMemo(
+    () => SECTION_PALETTES[activeSection] ?? SECTION_PALETTES.intro,
+    [activeSection]
+  );
+  const targetFogColor = useMemo(() => new THREE.Color(palette.fog), [palette]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    if (fogRef.current) {
+      const alpha = 1 - Math.exp(-2 * delta);
+      fogRef.current.color.lerp(targetFogColor, alpha);
+    }
+
     if (!groupRef.current) return;
 
     // Subtle parallax tilt based on mouse position
@@ -31,17 +50,16 @@ export const Scene = () => {
     if (activeSection === "projects") targetZ = 3.5;
     if (activeSection === "blog") targetZ = 4.2;
 
-    state.camera.position.z = THREE.MathUtils.lerp(
-      state.camera.position.z,
-      targetZ,
-      0.03
-    );
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.03);
   });
 
   return (
-    <group ref={groupRef}>
-      <NeuralGrid />
-      <ambientLight intensity={0.5} />
-    </group>
+    <>
+      <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
+      <group ref={groupRef}>
+        <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} />
+        <ambientLight intensity={0.5} />
+      </group>
+    </>
   );
 };

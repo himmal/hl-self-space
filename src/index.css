@@ -3,6 +3,8 @@
 /* 1. THEME OVERRIDES (Equivalent to MUI's createTheme) */
 @theme {
   --color-sci-cyan: #00ffcc;
+  --color-sci-magenta: #ff2fd0;
+  --color-sci-amber: #ffb020;
   --color-sci-bg: #050505;
   --color-glass-bg: rgba(0, 20, 20, 0.6);
   --color-glass-border: rgba(0, 255, 204, 0.3);
@@ -43,6 +45,7 @@
 
   /* Futuristic Glassmorphism Card (Equivalent to MUI <Card />) */
   .glass-card {
+    position: relative;
     background-color: var(--color-glass-bg);
     border: 1px solid var(--color-glass-border);
     backdrop-filter: blur(12px);
@@ -50,12 +53,33 @@
     padding: 2rem;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
+    overflow: hidden;
   }
 
   .glass-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
     border-color: var(--color-sci-cyan);
+  }
+
+  /* Sci-fi hover "scan sweep" sheen, pure CSS/no JS cost */
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      rgba(0, 255, 204, 0.15) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+  }
+
+  .glass-card:hover::before {
+    transform: translateX(120%);
   }
 
   /* Glitch Text Element (Equivalent to MUI <Typography variant="h1" />) */
@@ -66,5 +90,88 @@
       2px 2px 0px rgba(0, 255, 255, 0.5),
       -2px -2px 0px rgba(255, 0, 255, 0.5);
     letter-spacing: 0.1em;
+  }
+
+  .text-glitch[data-glitch-trigger="true"] {
+    animation: glitch-slice 0.25s steps(2, jump-none) 3;
+  }
+
+  /* CRT-style scanline + vignette overlay, toggled via crtModeEnabled */
+  .scanline-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.15) 0px,
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.55) 100%);
+    mix-blend-mode: multiply;
+  }
+
+  /* Hidden command terminal panel */
+  .terminal-panel {
+    background-color: rgba(0, 10, 10, 0.92);
+    border: 1px solid var(--color-sci-cyan);
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.25);
+    font-family: var(--font-mono);
+  }
+
+  /* HUD "targeting reticle" corner brackets */
+  .hud-corner-bracket {
+    position: relative;
+  }
+
+  .hud-corner-bracket::before,
+  .hud-corner-bracket::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--color-sci-cyan);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+
+  .hud-corner-bracket::before {
+    top: -4px;
+    left: -4px;
+    border-top: 2px solid;
+    border-left: 2px solid;
+  }
+
+  .hud-corner-bracket::after {
+    bottom: -4px;
+    right: -4px;
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+  }
+
+  .hud-corner-bracket:hover::before,
+  .hud-corner-bracket:hover::after,
+  .hud-corner-bracket:focus-visible::before,
+  .hud-corner-bracket:focus-visible::after {
+    opacity: 1;
+  }
+}
+
+@keyframes glitch-slice {
+  0% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+  50% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(-2px, 1px);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
   }
 }

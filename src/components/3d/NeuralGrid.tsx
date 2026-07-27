@@ -4,29 +4,34 @@ import * as THREE from "three";
 
 const PARTICLE_COUNT = 3000;
 
-export const NeuralGrid = () => {
+interface NeuralGridProps {
+  colorA?: string;
+  colorB?: string;
+}
+
+export const NeuralGrid = ({ colorA = "#00ffcc", colorB = "#0066ff" }: NeuralGridProps) => {
   const pointsRef = useRef<THREE.Points>(null);
 
   // Pre-allocate particle positions and vertex colors
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(PARTICLE_COUNT * 3);
     const col = new Float32Array(PARTICLE_COUNT * 3);
-    const colorA = new THREE.Color("#00ffcc");
-    const colorB = new THREE.Color("#0066ff");
+    const colA = new THREE.Color(colorA);
+    const colB = new THREE.Color(colorB);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       pos[i * 3] = (Math.random() - 0.5) * 15;
       pos[i * 3 + 1] = (Math.random() - 0.5) * 15;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 15;
 
-      const mixedColor = colorA.clone().lerp(colorB, Math.random());
+      const mixedColor = colA.clone().lerp(colB, Math.random());
       col[i * 3] = mixedColor.r;
       col[i * 3 + 1] = mixedColor.g;
       col[i * 3 + 2] = mixedColor.b;
     }
 
     return [pos, col];
-  }, []);
+  }, [colorA, colorB]);
 
   useFrame((state) => {
     if (!pointsRef.current) return;
