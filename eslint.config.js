@@ -8,10 +8,7 @@ import prettierConfig from "eslint-config-prettier";
 export default tseslint.config(
   { ignores: ["dist", "node_modules", ".vite"] },
   {
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-    ],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx,js,jsx}"],
     languageOptions: {
       ecmaVersion: 2024,
@@ -32,14 +29,35 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...reactPlugin.configs["jsx-runtime"].rules,
       ...reactHooks.configs.recommended.rules,
-      
+
       // React 19 specific tweaks
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      
+
       // Three.js / R3F specific tweaks
-      "react/no-unknown-property": ["error", { ignore: ["position", "rotation", "args", "geometry", "material"] }],
-      
+      "react/no-unknown-property": [
+        "error",
+        {
+          ignore: [
+            "position",
+            "rotation",
+            "scale",
+            "args",
+            "geometry",
+            "material",
+            "attach",
+            "blending",
+            "depthWrite",
+            "emissive",
+            "emissiveIntensity",
+            "frustumCulled",
+            "intensity",
+            "transparent",
+            "vertexColors",
+          ],
+        },
+      ],
+
       // Enforce clean variables
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
