@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAppStore } from "../../store/useAppStore";
@@ -16,6 +16,13 @@ export const DataFragments = () => {
   const collectFragment = useAppStore((state) => state.collectFragment);
   const { playSfx } = useAudioManager();
   const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
+
+  // Reset the cursor on unmount in case the component is removed mid-hover.
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, []);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();

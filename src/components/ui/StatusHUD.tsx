@@ -13,6 +13,9 @@ export const StatusHUD = () => {
   const crtModeEnabled = useAppStore((state) => state.crtModeEnabled);
   const toggleCrtMode = useAppStore((state) => state.toggleCrtMode);
 
+  // Clamp defensively: `collectedFragments` is persisted to localStorage, so
+  // ids collected under a previous build (e.g. before a fragment was
+  // renamed/removed) could otherwise push the count above 100%.
   const signalPercent = Math.min(
     100,
     Math.round((collectedFragments.length / TOTAL_FRAGMENTS) * 100)

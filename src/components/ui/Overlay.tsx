@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, type Section } from "../../store/useAppStore";
 import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
@@ -64,7 +64,7 @@ export const Overlay = () => {
     return () => clearTimeout(timeout);
   }, [activeSection, markSectionVisited, collectFragment]);
 
-  const handleNavClick = (section: "intro" | "projects" | "blog") => {
+  const handleNavClick = (section: Section) => {
     setActiveSection(section);
     playSfx("nav");
   };

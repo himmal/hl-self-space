@@ -50,8 +50,6 @@ export const Scene = () => {
       -targetMouseY,
       0.05
     );
-    // Camera position/FOV per section is now owned by `CameraRig`, which
-    // animates a curve-based "travel" journey instead of a flat z-lerp.
   });
 
   return (
