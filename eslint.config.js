@@ -65,6 +65,19 @@ export default tseslint.config(
       react: { version: "detect" },
     },
   },
+  {
+    // eslint-plugin-react-hooks v7 adds React Compiler readiness rules
+    // (`purity`, `immutability`, etc.) to its recommended set. These assume a
+    // pure React DOM render model and conflict with the imperative,
+    // ref-mutation-based `useFrame` pattern required for R3F/Three.js
+    // performance (see project custom instructions). Relax them for 3D
+    // components where mutating refs/camera/geometry each frame is expected.
+    files: ["src/components/3d/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/purity": "off",
+      "react-hooks/immutability": "off",
+    },
+  },
   // Ensure Prettier rules override any conflicting ESLint styling rules
   prettierConfig
 );
