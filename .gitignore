@@ -4,6 +4,11 @@
 node_modules/
 .pnpm-store/
 
+# This project uses pnpm exclusively (see docs/ARCHITECTURE.md).
+# Lockfiles from other package managers must not be committed.
+package-lock.json
+yarn.lock
+
 # Production Build
 dist/
 dist-ssr/
