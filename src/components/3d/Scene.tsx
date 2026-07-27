@@ -2,11 +2,11 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, type Section } from "../../store/useAppStore";
 
 // Section-themed grid palettes — cyan/blue for intro, magenta/violet for
 // projects, amber/green for blog. Kept module-level to avoid re-allocation.
-const SECTION_PALETTES: Record<string, { colorA: string; colorB: string; fog: string }> = {
+const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: string }> = {
   intro: { colorA: "#00ffcc", colorB: "#0066ff", fog: "#001a1a" },
   projects: { colorA: "#ff2fd0", colorB: "#7a1fff", fog: "#1a0022" },
   blog: { colorA: "#ffb020", colorB: "#33cc66", fog: "#1a1400" },
@@ -22,9 +22,10 @@ export const Scene = () => {
   );
   const targetFogColor = useMemo(() => new THREE.Color(palette.fog), [palette]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (fogRef.current) {
-      fogRef.current.color.lerp(targetFogColor, 0.02);
+      const alpha = 1 - Math.exp(-2 * delta);
+      fogRef.current.color.lerp(targetFogColor, alpha);
     }
 
     if (!groupRef.current) return;

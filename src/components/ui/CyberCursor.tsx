@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 const DAMP_LAMBDA = 12;
+const CURSOR_SIZE = 16;
 
 /**
  * Custom magnetic cursor overlay. Uses refs + requestAnimationFrame for all
@@ -41,9 +42,9 @@ export const CyberCursor = () => {
       posRef.current.y += (targetRef.current.y - posRef.current.y) * alpha;
 
       if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${posRef.current.x - 8}px, ${
-          posRef.current.y - 8
-        }px, 0)`;
+        dotRef.current.style.transform = `translate3d(${
+          posRef.current.x - CURSOR_SIZE / 2
+        }px, ${posRef.current.y - CURSOR_SIZE / 2}px, 0)`;
       }
 
       rafId = requestAnimationFrame(tick);

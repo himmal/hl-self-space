@@ -32,7 +32,7 @@ export const useAudioManager = () => {
       oscillator.type = "square";
       oscillator.frequency.value = SFX_TONES[name] ?? 440;
       gain.gain.setValueAtTime(0.06, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.12);
 
       oscillator.connect(gain).connect(ctx.destination);
       oscillator.start();
