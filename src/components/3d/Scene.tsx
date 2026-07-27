@@ -1,7 +1,13 @@
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
+import { CameraRig } from "./CameraRig";
+import { NeuralLinks } from "./NeuralLinks";
+import { DataFragments } from "./DataFragments";
+import { WarpParticles } from "./WarpParticles";
+import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
 
 // Section-themed grid palettes — cyan/blue for intro, magenta/violet for
@@ -44,22 +50,40 @@ export const Scene = () => {
       -targetMouseY,
       0.05
     );
-
-    // Dynamic camera Z depth according to navigation section
-    let targetZ = 5;
-    if (activeSection === "projects") targetZ = 3.5;
-    if (activeSection === "blog") targetZ = 4.2;
-
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.03);
   });
 
   return (
     <>
+      <CameraRig />
       <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
       <group ref={groupRef}>
         <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} />
+        {/* Sparser, slower-rotating parallax layer for extra depth at near-zero cost */}
+        <NeuralGrid
+          colorA={palette.colorA}
+          colorB={palette.colorB}
+          count={1200}
+          radius={30}
+          rotationSpeed={0.35}
+          size={0.02}
+          opacity={0.35}
+        />
+        <NeuralLinks />
+        <DataFragments />
+        {FRAGMENT_HUBS.slice(0, 2).map((hub) => (
+          <Sparkles
+            key={hub.id}
+            position={hub.position}
+            count={30}
+            scale={1.5}
+            size={2}
+            speed={0.3}
+            color={palette.colorA}
+          />
+        ))}
         <ambientLight intensity={0.5} />
       </group>
+      <WarpParticles />
     </>
   );
 };

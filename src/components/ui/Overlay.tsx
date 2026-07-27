@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppStore } from "../../store/useAppStore";
-import { Terminal, FolderGit2 } from "lucide-react";
+import { useAppStore, type Section } from "../../store/useAppStore";
+import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
+import { PROJECT_TO_LOG, LOG_TO_PROJECT } from "../3d/sceneData";
 
 const PROJECTS = [
   {
@@ -21,8 +22,25 @@ const PROJECTS = [
   },
 ];
 
+const LOG_ENTRIES = [
+  {
+    id: "log-1",
+    title: "Log // Building the Distributed Engine",
+    excerpt: "Notes on orchestrating asynchronous tasks at scale — the story behind Project Alpha.",
+  },
+  {
+    id: "log-2",
+    title: "Log // Edge AI in the Wild",
+    excerpt:
+      "Lessons from shipping low-latency inference pipelines — the story behind Neural Vision.",
+  },
+];
+
 export const Overlay = () => {
   const { activeSection, setActiveSection, setHoveredProject } = useAppStore();
+  const setHoveredLog = useAppStore((state) => state.setHoveredLog);
+  const activeLinkId = useAppStore((state) => state.activeLinkId);
+  const setActiveLinkId = useAppStore((state) => state.setActiveLinkId);
   const markSectionVisited = useAppStore((state) => state.markSectionVisited);
   const collectFragment = useAppStore((state) => state.collectFragment);
   const { playSfx } = useAudioManager();
@@ -46,9 +64,19 @@ export const Overlay = () => {
     return () => clearTimeout(timeout);
   }, [activeSection, markSectionVisited, collectFragment]);
 
-  const handleNavClick = (section: "intro" | "projects" | "blog") => {
+  const handleNavClick = (section: Section) => {
     setActiveSection(section);
     playSfx("nav");
+  };
+
+  const handleProjectHover = (id: string | null) => {
+    setHoveredProject(id);
+    setActiveLinkId(id ? (PROJECT_TO_LOG[id] ?? null) : null);
+  };
+
+  const handleLogHover = (id: string | null) => {
+    setHoveredLog(id);
+    setActiveLinkId(id ? (LOG_TO_PROJECT[id] ?? null) : null);
   };
 
   return (
@@ -80,6 +108,16 @@ export const Overlay = () => {
           >
             [02. Projects]
           </button>
+          <button
+            onClick={() => handleNavClick("blog")}
+            className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
+              activeSection === "blog"
+                ? "border-[var(--color-sci-cyan)] bg-[rgba(0,255,204,0.1)] text-white"
+                : "border-transparent opacity-70 hover:opacity-100"
+            }`}
+          >
+            [03. Blog]
+          </button>
         </nav>
       </header>
 
@@ -104,9 +142,11 @@ export const Overlay = () => {
           {PROJECTS.map((proj) => (
             <div
               key={proj.id}
-              className="glass-card flex cursor-pointer flex-col justify-between gap-4"
-              onMouseEnter={() => setHoveredProject(proj.id)}
-              onMouseLeave={() => setHoveredProject(null)}
+              className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
+                activeLinkId === proj.id ? "border-[var(--color-sci-cyan)]" : ""
+              }`}
+              onMouseEnter={() => handleProjectHover(proj.id)}
+              onMouseLeave={() => handleProjectHover(null)}
             >
               <div>
                 <h3 className="mb-2 text-lg font-bold text-[var(--color-sci-cyan)]">
@@ -133,6 +173,29 @@ export const Overlay = () => {
               >
                 Launch Repository &rarr;
               </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Blog / Log Showcase */}
+      <section className="mt-4 flex flex-col gap-6">
+        <h2 className="flex items-center gap-2 border-l-2 border-[var(--color-sci-cyan)] pl-3 text-xl font-bold">
+          <BookOpen className="h-5 w-5 text-[var(--color-sci-cyan)]" /> Engineering Log
+        </h2>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {LOG_ENTRIES.map((entry) => (
+            <div
+              key={entry.id}
+              className={`glass-card flex cursor-pointer flex-col gap-2 ${
+                activeLinkId === entry.id ? "border-[var(--color-sci-cyan)]" : ""
+              }`}
+              onMouseEnter={() => handleLogHover(entry.id)}
+              onMouseLeave={() => handleLogHover(null)}
+            >
+              <h3 className="text-lg font-bold text-[var(--color-sci-cyan)]">{entry.title}</h3>
+              <p className="text-sm text-gray-300">{entry.excerpt}</p>
             </div>
           ))}
         </div>

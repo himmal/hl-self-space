@@ -1,6 +1,7 @@
 import { SECTIONS, useAppStore } from "../../store/useAppStore";
+import { ALL_FRAGMENT_IDS } from "../3d/sceneData";
 
-const TOTAL_FRAGMENTS = SECTIONS.length;
+const TOTAL_FRAGMENTS = ALL_FRAGMENT_IDS.length;
 
 /**
  * Fixed, low-opacity corner HUD showing exploration progress. Reads purely
@@ -12,7 +13,13 @@ export const StatusHUD = () => {
   const crtModeEnabled = useAppStore((state) => state.crtModeEnabled);
   const toggleCrtMode = useAppStore((state) => state.toggleCrtMode);
 
-  const signalPercent = Math.round((collectedFragments.length / TOTAL_FRAGMENTS) * 100);
+  // Clamp defensively: `collectedFragments` is persisted to localStorage, so
+  // ids collected under a previous build (e.g. before a fragment was
+  // renamed/removed) could otherwise push the count above 100%.
+  const signalPercent = Math.min(
+    100,
+    Math.round((collectedFragments.length / TOTAL_FRAGMENTS) * 100)
+  );
 
   return (
     <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-glass-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-sci-cyan)] uppercase backdrop-blur-md">

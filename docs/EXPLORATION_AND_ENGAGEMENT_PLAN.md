@@ -22,28 +22,28 @@ layer (`src/components/ui/`), bridged only via `zustand` (`src/store/useAppStore
 Goal: make the canvas feel like a living, navigable "neural space" rather than a
 decorative background — reinforcing that each section is a physical "location."
 
-- [ ] **Section-to-Waypoint Camera Travel** — Define a `CameraRig.tsx` component
+- [x] **Section-to-Waypoint Camera Travel** — Define a `CameraRig.tsx` component
       that maps each `activeSection` to a named waypoint (position + lookAt +
       FOV). On section change, animate the camera along a `THREE.CatmullRomCurve3`
       path instead of a flat lerp, so transitions feel like "traveling" through
       the grid rather than snapping to a new depth.
-- [ ] **Reactive Camera Micro-Movement** — Extend the existing pointer-based
+- [x] **Reactive Camera Micro-Movement** — Extend the existing pointer-based
       parallax tilt in `Scene.tsx` with subtle "hover magnetism": when a UI
       element is hovered (tracked via `hoveredProject` / a new `hoveredNode` in
       the store), bias the camera's target slightly toward the corresponding 3D
       anchor point, reinforcing the UI ↔ 3D link.
-- [ ] **Environmental Depth Shifts (Fog & Parallax Layers)** — Add a
+- [x] **Environmental Depth Shifts (Fog & Parallax Layers)** — Add a
       `THREE.FogExp2` layer whose density/color lerps per section (e.g., denser
       cyan fog in "blog," clearer void in "intro"). Add a second, slower-rotating
       `NeuralGrid` instance (sparse, larger scale) behind the main one to create
       a parallax depth field with near-zero extra draw cost (shared geometry via
       `useMemo`, instanced or simply lower particle count).
-- [ ] **Volumetric Light Shafts** — Introduce a lightweight volumetric effect
+- [x] **Volumetric Light Shafts** — Introduce a lightweight volumetric effect
       using `@react-three/drei`'s `<Sparkles>` or a custom additive-blended
       cone mesh with a noise shader, anchored at "hub" points in the grid
       (e.g., where projects cluster). Keep to 1–2 static instances to protect
       frame budget — avoid full post-processing volumetric passes.
-- [ ] **Particle Warp/Transition Effect** — On section transitions, temporarily
+- [x] **Particle Warp/Transition Effect** — On section transitions, temporarily
       stretch particles along the camera's forward vector (a "hyperspace jump"),
       driven by animating a `uProgress` uniform in a custom `ShaderMaterial`
       rather than mutating buffer geometry per-frame. Trigger via a transient
@@ -52,7 +52,7 @@ decorative background — reinforcing that each section is a physical "location.
       (tracked via `useIdleTimer`-style hook, not `useState` in `useFrame`),
       slowly drift the camera in a small orbit to keep the scene alive and hint
       that the space is explorable, canceling on next pointer/keyboard input.
-- [ ] **Section-Themed Grid Palettes** — Extend `NeuralGrid` to accept a
+- [x] **Section-Themed Grid Palettes** — Extend `NeuralGrid` to accept a
       `colorA`/`colorB` prop pair (memoized) driven by `activeSection`, so each
       section has a distinct signature palette (e.g., cyan/blue for intro,
       magenta/violet for projects, amber/green for blog) without re-allocating
@@ -65,7 +65,7 @@ decorative background — reinforcing that each section is a physical "location.
 Goal: turn "browsing" into "exploring" — reward visitors for moving between
 sections and finding connections, increasing time-on-site and section coverage.
 
-- [ ] **Neural Node Links (Project ↔ Blog Graph)** — Model relationships as data
+- [x] **Neural Node Links (Project ↔ Blog Graph)** — Model relationships as data
       (`{ projectId, logId }[]`) and render them as glowing connector lines in
       the 3D layer between the two sections' anchor points. Hovering a project
       card in the UI highlights its linked blog "log entry" node in 3D (and
@@ -80,7 +80,7 @@ sections and finding connections, increasing time-on-site and section coverage.
       `cat manifesto.txt`. Purely a DOM component reading/writing Zustand state
       (e.g., `setActiveSection`, unlocking hidden content) — no 3D coupling
       required, low risk to performance.
-- [ ] **Collectible Data Fragments** — Scatter 3–5 small glowing "fragment"
+- [x] **Collectible Data Fragments** — Scatter 3–5 small glowing "fragment"
       meshes across different sections (rendered as part of the 3D scene, one
       per section). Visiting a section for the first time (or clicking the
       fragment) marks it "collected" in a persisted Zustand slice
@@ -272,9 +272,9 @@ Rules to enforce:
 - [ ] **Phase 2 (state-driven UI):** `StatusHUD`, `CommandTerminal`,
       collectible fragments' UI progress indicator, `audioEnabled` toggle +
       basic SFX.
-- [ ] **Phase 3 (3D depth features):** `CameraRig` waypoint travel, fog/parallax
+- [x] **Phase 3 (3D depth features):** `CameraRig` waypoint travel, fog/parallax
       depth layer, section-themed grid palettes.
-- [ ] **Phase 4 (advanced/gamified):** `NeuralLinks` graph, `DataFragments`
+- [x] **Phase 4 (advanced/gamified):** `NeuralLinks` graph, `DataFragments`
       3D meshes + collection logic, particle warp transition shader,
       volumetric light shafts.
 
