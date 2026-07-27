@@ -32,7 +32,7 @@ export const NotFoundUI = () => {
           variants={itemVariants}
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-          className="flex items-center gap-2 text-sm tracking-[0.3em] text-[var(--color-sci-magenta)] uppercase"
+          className="flex items-center gap-2 text-sm tracking-widest text-[var(--color-sci-magenta)] uppercase"
         >
           <RadioTower className="h-4 w-4" aria-hidden="true" />
           <span>Signal Lost</span>
@@ -69,7 +69,7 @@ export const NotFoundUI = () => {
         <motion.div variants={itemVariants}>
           <Link
             to="/"
-            className="inline-block rounded-md border border-[var(--color-sci-cyan)] px-6 py-3 text-sm font-bold tracking-[0.2em] text-[var(--color-sci-cyan)] uppercase shadow-[0_0_20px_rgba(0,255,204,0.25)] transition-all duration-300 hover:bg-[var(--color-sci-cyan)] hover:text-[var(--color-sci-bg)] hover:shadow-[0_0_30px_rgba(0,255,204,0.6)]"
+            className="inline-block rounded-md border border-[var(--color-sci-cyan)] px-6 py-3 text-sm font-bold tracking-widest text-[var(--color-sci-cyan)] uppercase shadow-[0_0_20px_rgba(0,255,204,0.25)] transition-all duration-300 hover:bg-[var(--color-sci-cyan)] hover:text-[var(--color-sci-bg)] hover:shadow-[0_0_30px_rgba(0,255,204,0.6)]"
           >
             Re-establish Link
           </Link>
