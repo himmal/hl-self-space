@@ -22,7 +22,7 @@ export const StatusHUD = () => {
   );
 
   return (
-    <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-glass-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-sci-cyan)] uppercase backdrop-blur-md">
+    <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase backdrop-blur-md">
       <span>
         Sections Visited: {visitedSections.length}/{SECTIONS.length}
       </span>
@@ -31,7 +31,7 @@ export const StatusHUD = () => {
       </span>
       <div className="h-1 w-32 bg-white/10">
         <div
-          className="h-full bg-[var(--color-sci-cyan)] transition-all duration-500"
+          className="h-full bg-[var(--color-accent)] transition-all duration-500"
           style={{ width: `${signalPercent}%` }}
         />
       </div>
@@ -39,7 +39,7 @@ export const StatusHUD = () => {
       <button
         type="button"
         onClick={toggleCrtMode}
-        className="mt-1 cursor-pointer self-start border border-[var(--color-glass-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        className="mt-1 cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
       >
         CRT MODE: {crtModeEnabled ? "ON" : "OFF"}
       </button>

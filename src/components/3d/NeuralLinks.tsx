@@ -51,7 +51,7 @@ export const NeuralLinks = () => {
             start={link.start}
             end={link.end}
             mid={link.mid}
-            color={isActive ? "#ffffff" : "#00ffcc"}
+            color={isActive ? "#e2e8f0" : "#38bdf8"}
             lineWidth={isActive ? 2.5 : 1}
             transparent
             opacity={isActive ? 0.9 : 0.25}
