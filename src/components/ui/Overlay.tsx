@@ -1,9 +1,43 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppStore, type Section } from "../../store/useAppStore";
+import { useAppStore, SECTIONS, type Section } from "../../store/useAppStore";
 import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
+import { useActiveSection } from "../../hooks/useActiveSection";
 import { PROJECT_TO_LOG, LOG_TO_PROJECT } from "../3d/sceneData";
+
+// Per-section DOM theme: background + text accent, mirroring the WebGL
+// per-section palette in `AntigravityParticles`/`Scene` (see
+// docs/ARCHITECTURE.md §5.2/§7). Applied directly to each `<section>` and
+// its heading/link accents so scrolling between sections visibly recolors
+// the page, not just the particle field.
+const SECTION_THEME: Record<Section, { bg: string; text: string; border: string; nav: string }> =
+  {
+    intro: {
+      bg: "bg-black",
+      text: "text-cyan-400",
+      border: "border-cyan-400/40",
+      nav: "border-cyan-400/60 bg-cyan-400/10 text-cyan-300",
+    },
+    projects: {
+      bg: "bg-[#0b1120]",
+      text: "text-purple-400",
+      border: "border-purple-400/40",
+      nav: "border-purple-400/60 bg-purple-400/10 text-purple-300",
+    },
+    blogs: {
+      bg: "bg-neutral-900",
+      text: "text-amber-400",
+      border: "border-amber-400/40",
+      nav: "border-amber-400/60 bg-amber-400/10 text-amber-300",
+    },
+  };
+
+const NAV_ITEMS: { id: Section; label: string }[] = [
+  { id: "intro", label: "[01. Intro]" },
+  { id: "projects", label: "[02. Projects]" },
+  { id: "blogs", label: "[03. Blogs]" },
+];
 
 const PROJECTS = [
   {
@@ -37,7 +71,8 @@ const LOG_ENTRIES = [
 ];
 
 export const Overlay = () => {
-  const { activeSection, setActiveSection, setHoveredProject } = useAppStore();
+  const activeSection = useAppStore((state) => state.activeSection);
+  const setHoveredProject = useAppStore((state) => state.setHoveredProject);
   const setHoveredLog = useAppStore((state) => state.setHoveredLog);
   const activeLinkId = useAppStore((state) => state.activeLinkId);
   const setActiveLinkId = useAppStore((state) => state.setActiveLinkId);
@@ -46,6 +81,10 @@ export const Overlay = () => {
   const { playSfx } = useAudioManager();
   const [glitchActive, setGlitchActive] = useState(false);
   const isFirstRender = useRef(true);
+
+  // Scroll-spy: `activeSection` is now derived from real scroll position
+  // (see docs/ARCHITECTURE.md §5.4/§7), not set imperatively by nav clicks.
+  useActiveSection(SECTIONS);
 
   // Mark each section as "visited" and award a collectible data fragment the
   // first time a section is reached — a lightweight interpretation of the
@@ -64,11 +103,6 @@ export const Overlay = () => {
     return () => clearTimeout(timeout);
   }, [activeSection, markSectionVisited, collectFragment]);
 
-  const handleNavClick = (section: Section) => {
-    setActiveSection(section);
-    playSfx("nav");
-  };
-
   const handleProjectHover = (id: string | null) => {
     setHoveredProject(id);
     setActiveLinkId(id ? (PROJECT_TO_LOG[id] ?? null) : null);
@@ -80,149 +114,151 @@ export const Overlay = () => {
   };
 
   return (
-    <main className="ui-layer">
-      {/* Sci-Fi Navigation Header */}
-      <header className="flex items-center justify-between border-b border-[var(--color-border)] pb-4 backdrop-blur-md">
+    <>
+      {/* Sticky, frosted-glass scroll-spy navbar (docs/ARCHITECTURE.md §7) */}
+      <header className="fixed top-0 z-20 flex w-full items-center justify-between border-b border-[var(--color-border)] bg-black/80 px-[10vw] py-4 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Terminal className="h-6 w-6 text-[var(--color-accent)]" />
           <span className="text-lg font-bold tracking-widest">HIM.DEV // LOG</span>
         </div>
         <nav className="flex gap-4">
-          <button
-            onClick={() => handleNavClick("intro")}
-            className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
-              activeSection === "intro"
-                ? "border-[var(--color-accent)] bg-[rgba(56,189,248,0.12)] text-white"
-                : "border-transparent opacity-70 hover:opacity-100"
-            }`}
-          >
-            [01. Intro]
-          </button>
-          <button
-            onClick={() => handleNavClick("projects")}
-            className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
-              activeSection === "projects"
-                ? "border-[var(--color-accent)] bg-[rgba(56,189,248,0.12)] text-white"
-                : "border-transparent opacity-70 hover:opacity-100"
-            }`}
-          >
-            [02. Projects]
-          </button>
-          <button
-            onClick={() => handleNavClick("blog")}
-            className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
-              activeSection === "blog"
-                ? "border-[var(--color-accent)] bg-[rgba(56,189,248,0.12)] text-white"
-                : "border-transparent opacity-70 hover:opacity-100"
-            }`}
-          >
-            [03. Blog]
-          </button>
+          {NAV_ITEMS.map(({ id, label }) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              onClick={() => playSfx("nav")}
+              className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
+                activeSection === id
+                  ? SECTION_THEME[id].nav
+                  : "border-transparent opacity-70 hover:opacity-100"
+              }`}
+            >
+              {label}
+            </a>
+          ))}
         </nav>
       </header>
 
-      {/* Intro Section */}
-      <section className="mt-8 flex max-w-2xl flex-col gap-4">
-        <h1 className="text-glitch" data-glitch-trigger={glitchActive}>
-          Self Profile // Software Engineer
-        </h1>
-        <p className="text-base leading-relaxed text-gray-300">
-          Specializing in high-performance backend systems and real-time interactive spatial
-          applications. Welcome to my digital terminal and personal engineering log.
-        </p>
-      </section>
+      <main className="ui-layer pt-24">
+        {/* Intro Section */}
+        <section
+          id="intro"
+          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-4 ${SECTION_THEME.intro.bg}`}
+        >
+          <h1
+            className={`text-glitch ${SECTION_THEME.intro.text}`}
+            data-glitch-trigger={glitchActive}
+          >
+            Self Profile // Software Engineer
+          </h1>
+          <p className="max-w-2xl text-base leading-relaxed text-gray-300">
+            Specializing in high-performance backend systems and real-time interactive spatial
+            applications. Welcome to my digital terminal and personal engineering log.
+          </p>
+        </section>
 
-      {/* Projects Showcase */}
-      <section className="mt-4 flex flex-col gap-6">
-        <h2 className="flex items-center gap-2 border-l-2 border-[var(--color-accent)] pl-3 text-xl font-bold">
-          <FolderGit2 className="h-5 w-5 text-[var(--color-accent)]" /> Selected Works
-        </h2>
+        {/* Projects Showcase */}
+        <section
+          id="projects"
+          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-6 ${SECTION_THEME.projects.bg}`}
+        >
+          <h2
+            className={`flex items-center gap-2 border-l-2 pl-3 text-xl font-bold ${SECTION_THEME.projects.border} ${SECTION_THEME.projects.text}`}
+          >
+            <FolderGit2 className="h-5 w-5" /> Selected Works
+          </h2>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {PROJECTS.map((proj) => (
-            <div
-              key={proj.id}
-              className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
-                activeLinkId === proj.id ? "border-[var(--color-accent)]" : ""
-              }`}
-              onMouseEnter={() => handleProjectHover(proj.id)}
-              onMouseLeave={() => handleProjectHover(null)}
-            >
-              <div>
-                <h3 className="mb-2 text-lg font-bold text-[var(--color-accent)]">
-                  {proj.title}
-                </h3>
-                <p className="mb-4 text-sm text-gray-300">{proj.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {proj.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="border border-[var(--color-border)] bg-black/40 px-2 py-0.5 text-xs text-cyan-200"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {PROJECTS.map((proj) => (
+              <div
+                key={proj.id}
+                className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
+                  activeLinkId === proj.id ? SECTION_THEME.projects.border : ""
+                }`}
+                onMouseEnter={() => handleProjectHover(proj.id)}
+                onMouseLeave={() => handleProjectHover(null)}
+              >
+                <div>
+                  <h3 className={`mb-2 text-lg font-bold ${SECTION_THEME.projects.text}`}>
+                    {proj.title}
+                  </h3>
+                  <p className="mb-4 text-sm text-gray-300">{proj.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {proj.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="border border-[var(--color-border)] bg-black/40 px-2 py-0.5 text-xs text-purple-200"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
+                <a
+                  href={proj.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`flex items-center gap-1 self-start text-xs tracking-wider uppercase hover:underline ${SECTION_THEME.projects.text}`}
+                >
+                  Launch Repository &rarr;
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Blogs / Log Showcase */}
+        <section
+          id="blogs"
+          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-6 ${SECTION_THEME.blogs.bg}`}
+        >
+          <h2
+            className={`flex items-center gap-2 border-l-2 pl-3 text-xl font-bold ${SECTION_THEME.blogs.border} ${SECTION_THEME.blogs.text}`}
+          >
+            <BookOpen className="h-5 w-5" /> Engineering Log
+          </h2>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {LOG_ENTRIES.map((entry) => (
+              <div
+                key={entry.id}
+                className={`glass-card flex cursor-pointer flex-col gap-2 ${
+                  activeLinkId === entry.id ? SECTION_THEME.blogs.border : ""
+                }`}
+                onMouseEnter={() => handleLogHover(entry.id)}
+                onMouseLeave={() => handleLogHover(null)}
+              >
+                <h3 className={`text-lg font-bold ${SECTION_THEME.blogs.text}`}>{entry.title}</h3>
+                <p className="text-sm text-gray-300">{entry.excerpt}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <footer className="mt-auto flex items-center justify-between border-t border-[var(--color-border)] pt-10 text-xs text-gray-400">
+            <span>&copy; {new Date().getFullYear()} HIM // SYSTEM ONLINE</span>
+            <div className="flex gap-4">
               <a
-                href={proj.link}
+                href="https://github.com"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1 self-start text-xs tracking-wider text-[var(--color-accent)] uppercase hover:underline"
+                className="hover:text-[var(--color-accent)]"
               >
-                Launch Repository &rarr;
+                <GithubIcon className="h-4 w-4" />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[var(--color-accent)]"
+              >
+                <LinkedinIcon className="h-4 w-4" />
               </a>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Blog / Log Showcase */}
-      <section className="mt-4 flex flex-col gap-6">
-        <h2 className="flex items-center gap-2 border-l-2 border-[var(--color-accent)] pl-3 text-xl font-bold">
-          <BookOpen className="h-5 w-5 text-[var(--color-accent)]" /> Engineering Log
-        </h2>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {LOG_ENTRIES.map((entry) => (
-            <div
-              key={entry.id}
-              className={`glass-card flex cursor-pointer flex-col gap-2 ${
-                activeLinkId === entry.id ? "border-[var(--color-accent)]" : ""
-              }`}
-              onMouseEnter={() => handleLogHover(entry.id)}
-              onMouseLeave={() => handleLogHover(null)}
-            >
-              <h3 className="text-lg font-bold text-[var(--color-accent)]">{entry.title}</h3>
-              <p className="text-sm text-gray-300">{entry.excerpt}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="mt-auto flex items-center justify-between border-t border-[var(--color-border)] pt-10 text-xs text-gray-400">
-        <span>&copy; {new Date().getFullYear()} HIM // SYSTEM ONLINE</span>
-        <div className="flex gap-4">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-[var(--color-accent)]"
-          >
-            <GithubIcon className="h-4 w-4" />
-          </a>
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-[var(--color-accent)]"
-          >
-            <LinkedinIcon className="h-4 w-4" />
-          </a>
-        </div>
-      </footer>
-    </main>
+          </footer>
+        </section>
+      </main>
+    </>
   );
 };

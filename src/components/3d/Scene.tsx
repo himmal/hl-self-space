@@ -19,7 +19,7 @@ import { useAppStore, type Section } from "../../store/useAppStore";
 const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: string }> = {
   intro: { colorA: "#334155", colorB: "#38bdf8", fog: "#020617" },
   projects: { colorA: "#334155", colorB: "#2dd4bf", fog: "#0b1120" },
-  blog: { colorA: "#334155", colorB: "#38bdf8", fog: "#0c0a09" },
+  blogs: { colorA: "#334155", colorB: "#38bdf8", fog: "#0c0a09" },
 };
 
 export const Scene = () => {

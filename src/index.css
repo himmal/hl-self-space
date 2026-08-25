@@ -20,6 +20,13 @@
 
 /* 2. BASE STYLES */
 @layer base {
+  html {
+    /* Smooth in-page scrolling for the `#intro`/`#projects`/`#blogs` anchor
+       nav (see docs/ARCHITECTURE.md §7). Each section also sets
+       `scroll-mt-24` so it lands cleanly below the fixed navbar. */
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-bg);
     color: var(--color-accent);

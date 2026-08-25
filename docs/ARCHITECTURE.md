@@ -113,9 +113,10 @@ Replace the neon cyan/magenta/amber "sci-fi terminal" palette with a restrained,
 | `--color-accent` | `#0ea5e9` (sky-500) or `#14b8a6` (teal-500) | Links, active nav state, rare particle highlight, focus rings |
 
 Rules:
-- Retire `--color-sci-cyan`, `--color-sci-magenta`, `--color-sci-amber`, and the per-section palette swap in `Scene.tsx`/`NeuralGrid` (magenta/violet, amber/green) in favor of one consistent slate + single-accent theme across all sections — no more per-section neon re-theming.
+- The prior "no per-section re-theming" rule is **superseded** by §7 below: each of the three sections (`#intro`, `#projects`, `#blogs`) now carries its own restrained DOM accent (cyan/purple/amber) layered on top of the shared slate base, mirroring the WebGL per-section palette that `AntigravityParticles` already used. The base slate/near-black surfaces, borders, and card treatment described in this table remain unchanged and shared across all sections — only the *accent* (headings, active nav state, link color) swaps per section.
+- Retire `--color-sci-cyan`, `--color-sci-magenta`, `--color-sci-amber` in favor of the slate base above; the per-section accent swap is handled via section-scoped Tailwind utility classes (see §7), not by reintroducing global neon CSS variables.
 - Eliminate large, saturated bloom/glow blobs (e.g. the wide `Sparkles`/glow at `FRAGMENT_HUBS`, oversized glass-card box-shadows); accents should read as small, deliberate highlights (a thin border, a subtly glowing dot), not full-screen color washes.
-- `.glass-card` keeps subtle glassmorphism (blur + low-opacity surface) but its border/glow color moves from `--color-sci-cyan` to `--color-accent` at low opacity.
+- `.glass-card` keeps subtle glassmorphism (blur + low-opacity surface) but its border/glow color moves from `--color-sci-cyan` to `--color-accent` (or the active section's accent when highlighting a linked card) at low opacity.
 - All existing hard-coded hex/rgba color literals in components and `index.css` are replaced with references to the new theme tokens so the palette stays centrally controlled.
 
 ### 5.3 Single Page Architecture
@@ -157,7 +158,48 @@ Adopt `motion` (already a dependency — the renamed Framer Motion package, impo
 6. Wrap sections in `motion.section` with shared fade/slide-up variants, `whileInView` + `once: true`.
 7. Verify `pnpm lint` / `pnpm build` after each step.
 
-## 📦 6. Package Management (pnpm)
+## 🧭 6. Section Layout, Scroll-Spy Navbar & Per-Section Theming
+
+This section documents the hash-based, three-section layout, the scroll-spy navbar, and the three DOM/WebGL themes mapped to each section — the concrete implementation of the plan in §5, extended with per-section theming.
+
+### 6.1 Three-Section Hash Layout
+
+`Overlay.tsx` renders a single flowing `<main className="ui-layer">` containing exactly three `<section>` elements, each addressable by URL hash and each `min-h-screen` so it occupies at least one full viewport:
+
+```text
+<section id="intro" className="min-h-screen scroll-mt-24 ...">   → #intro
+<section id="projects" className="min-h-screen scroll-mt-24 ...">→ #projects
+<section id="blogs" className="min-h-screen scroll-mt-24 ...">   → #blogs
+```
+
+- `scroll-mt-24` (`scroll-margin-top`) on every section keeps the anchored content clear of the fixed navbar when jumping to a hash.
+- `html { scroll-behavior: smooth; }` (in `index.css`) makes both hash-link clicks and programmatic `location.hash` changes animate instead of jump-cutting.
+- The `Section` union type (`useAppStore.ts`) is the single source of truth for the three ids: `"intro" | "projects" | "blogs"`. `SECTION_WAYPOINTS`, `SECTION_THEMES` (WebGL), and `SECTION_THEME` (DOM, `Overlay.tsx`) are all keyed by this same type so the three layers can never drift out of sync.
+
+### 6.2 Sticky Navbar & Scroll-Spy
+
+- The `<header>` is `position: fixed; top: 0; width: 100%;` with `z-index: 20` — above the `.ui-layer` content (`z-index: 10`) and the fixed `.canvas-layer` (`z-index: -1`), but below the HUD/cursor overlays (`z-index: 30`/`50`) and CRT scanline (`z-index: 40`).
+- It uses a frosted-glass treatment (`bg-black/80 backdrop-blur-md`, `border-b`) so nav text stays legible regardless of which section/theme is scrolled behind it.
+- Nav links are plain `<a href="#intro">` / `#projects` / `#blogs"` anchors (not buttons with click handlers) so the browser's native hash-scroll and smooth-scroll CSS both apply for free.
+- **Scroll-spy** is implemented by the `useActiveSection` hook (`src/hooks/useActiveSection.ts`): it attaches one `IntersectionObserver` (with a biased `rootMargin` favoring the upper portion of the viewport) to all three section elements and writes whichever section has the highest intersection ratio into `activeSection` (Zustand). This runs continuously as the user scrolls — clicking a nav link only triggers the browser's native smooth-scroll; the observer is what actually updates the active nav highlight and drives the DOM/WebGL theme, so manual scrolling and nav clicks are both first-class ways to navigate.
+- Framer Motion's `useInView` (`motion/react`, aliased per §5.5) is an acceptable alternative to a hand-rolled `IntersectionObserver` for entrance animations, but scroll-spy active-section tracking should stay on a raw `IntersectionObserver` (via `useActiveSection`) since it must run continuously (`once: false`), unlike `whileInView` entrance transitions which fire once.
+
+### 6.3 Three Distinct Themes (DOM + WebGL)
+
+Each section pairs a DOM accent (`Overlay.tsx`'s `SECTION_THEME` map) with a WebGL particle theme (`AntigravityParticles.tsx`'s `SECTION_THEMES` map). Both are keyed by the same `Section` id so they change together as `activeSection` updates.
+
+| Section | DOM background | DOM accent | WebGL particle color | WebGL motion |
+|---|---|---|---|---|
+| `#intro` | Deep black (`bg-black`) | `text-cyan-400` | Slate/cyan (`#334155` → `#38bdf8`) | Slow, gentle idle "breathing" drift; medium repulsion radius (`1.5`), strong elastic return |
+| `#projects` | Very dark navy/slate (`bg-[#0b1120]`) | `text-purple-400` | Slate/purple (`#334155` → `#e879f9`) | Slightly faster Brownian jitter + field rotation; large, aggressive repulsion radius (`3.0`), low friction so a push carries particles far |
+| `#blogs` | Deep charcoal (`bg-neutral-900`) | `text-amber-400` | Dark grey/amber (`#3f3f46` → `#eab308`) | Slow continuous upward "data stream" drift (`streamSpeed`) instead of return-to-anchor; directional mouse "wake" force instead of pure radial repulsion |
+
+Implementation notes:
+- In `AntigravityParticles.tsx`, every scalar (`repulsionRadius`, `repulsionStrength`, `dampingLambda`, `breatheAmplitude`, `streamSpeed`, etc.) and every per-particle color is eased toward the active section's target every frame inside `useFrame` via `THREE.MathUtils.lerp` (scalars) / `THREE.Color.lerp` (colors), each at its own exponential rate (`PARAM_LERP_LAMBDA`, `COLOR_LERP_LAMBDA`). Nothing snaps: switching sections re-themes the field smoothly over roughly half a second to a second.
+- `Scene.tsx` additionally lerps the scene fog color per section for a subtle background-depth tint, while the DOM accent in `Overlay.tsx` and the particle theme in `AntigravityParticles.tsx` carry the more pronounced per-section color identity.
+- The DOM accent is intentionally restrained (a single Tailwind text-color utility per section, e.g. `text-cyan-400`/`text-purple-400`/`text-amber-400`, plus a matching low-opacity `border`/`bg` on the active nav link) rather than a full neon re-skin — consistent with the "no oversized glow" rule in §5.2.
+
+## 📦 7. Package Management (pnpm)
 This project strictly uses pnpm.
 
 Never use `npm install` or `yarn add`.
