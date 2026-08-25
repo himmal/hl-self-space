@@ -24,8 +24,9 @@ const COLUMN_COUNT = 14;
 const FIELD_OVERSCAN = 1.15;
 const FIELD_DEPTH = 4;
 // Rate (per second, exponential) at which each particle's morph target
-// eases from one section's base geometry toward another's, so switching
-// sections reshapes the field smoothly instead of snapping.
+// eases from one base geometry toward another, so switching sections *and*
+// switching sub-patterns within a section reshapes the field smoothly
+// instead of snapping.
 const ANCHOR_MORPH_LAMBDA = 1.1;
 // Rate at which the scalar physics globals (radius/strength/friction/etc.)
 // themselves ease toward the active section's target values.
@@ -38,6 +39,30 @@ const MAX_WAKE_SPEED = 40;
 // Base point size in world units — kept microscopic per the "tiny precise dot" spec.
 const PARTICLE_SIZE = 0.035;
 const PARTICLE_MAX_PIXEL_SIZE = 5;
+
+// How many distinct shape patterns each section auto-cycles through, and how
+// long (seconds) each one is held before smoothly morphing to the next.
+// `state.clock.elapsedTime` is used as the loop timer so the cadence stays
+// perfectly consistent regardless of frame rate or `activeSection` changes.
+const SUB_PATTERN_COUNT = 3;
+const SUB_PATTERN_DURATION = 9;
+
+// Ambient per-particle animation amplitudes for the "static" sub-patterns —
+// kept as simple constants (rather than section-lerped params) since they're
+// tied to which sub-pattern is active, not which section.
+const BREATHE_AMPLITUDE = 0.12;
+const SPHERE_PULSE_AMPLITUDE = 0.28;
+const SPHERE_PULSE_SPEED = 0.6;
+const WAVE_AMPLITUDE_A = 0.5;
+const WAVE_AMPLITUDE_B = 0.3;
+const BROWNIAN_AMPLITUDE = 0.4;
+const DISPERSED_JITTER = 0.12;
+const STREAM_SPEED = 0.5;
+// Concentric-ring / orbital layout tuning for "#projects" sub-pattern 1.
+const RING_COUNT = 6;
+// Double-helix layout tuning for "#blogs" sub-pattern 1.
+const HELIX_TURNS = 3;
+const HELIX_RADIUS = 1.6;
 
 interface SectionTheme {
   /** Weighted per-particle palette; index matches each particle's fixed `colorSlots` role. */
@@ -52,14 +77,8 @@ interface SectionTheme {
   dampingLambda: number;
   /** Exponential rate at which particles ease back toward their base anchor. */
   returnLambda: number;
-  /** Amplitude of the idle "breathing" sine drift on Y (#intro). */
-  breatheAmplitude: number;
-  /** Amplitude of the idle Brownian-ish jitter (#projects). */
-  brownianAmplitude: number;
   /** Whole-field Y-axis rotation speed, rad/s (#projects). */
   rotationSpeed: number;
-  /** Upward "data stream" drift speed on Y, world units/s (#blogs). */
-  streamSpeed: number;
 }
 
 // Professional, muted per-section palettes. Declared at module scope so
@@ -73,10 +92,7 @@ const SECTION_THEMES: Record<Section, SectionTheme> = {
     wakeStrength: 0,
     dampingLambda: 3.5,
     returnLambda: 1.4, // strong elastic pull back to basePosition
-    breatheAmplitude: 0.12,
-    brownianAmplitude: 0,
     rotationSpeed: 0,
-    streamSpeed: 0,
   },
   projects: {
     colors: [new THREE.Color("#334155"), new THREE.Color("#a855f7"), new THREE.Color("#e879f9")],
@@ -85,10 +101,7 @@ const SECTION_THEMES: Record<Section, SectionTheme> = {
     wakeStrength: 0,
     dampingLambda: 1.1, // low friction so an explosive push carries particles far
     returnLambda: 0.12, // weak pull — takes much longer to drift back to center
-    breatheAmplitude: 0,
-    brownianAmplitude: 0.4,
     rotationSpeed: 0.15,
-    streamSpeed: 0,
   },
   blogs: {
     colors: [new THREE.Color("#3f3f46"), new THREE.Color("#d97706"), new THREE.Color("#eab308")],
@@ -97,11 +110,27 @@ const SECTION_THEMES: Record<Section, SectionTheme> = {
     wakeStrength: 10,
     dampingLambda: 2.5,
     returnLambda: 0.5,
-    breatheAmplitude: 0,
-    brownianAmplitude: 0,
     rotationSpeed: 0,
-    streamSpeed: 0.5,
   },
+};
+
+// The nine sub-patterns, keyed by section then cycle index — used purely to
+// pick which structural target (below) drives a given particle each frame.
+type SubPatternMode =
+  | "grid"
+  | "sphere"
+  | "wave"
+  | "swirl"
+  | "rings"
+  | "dispersed"
+  | "streamUp"
+  | "helix"
+  | "streamDown";
+
+const SUB_PATTERN_MODES: Record<Section, readonly [SubPatternMode, SubPatternMode, SubPatternMode]> = {
+  intro: ["grid", "sphere", "wave"],
+  projects: ["swirl", "rings", "dispersed"],
+  blogs: ["streamUp", "helix", "streamDown"],
 };
 
 const pickColorSlot = () => {
@@ -186,7 +215,7 @@ const buildSwirlAnchors = (out: Float32Array, width: number, height: number) => 
   }
 };
 
-/** Fills `out` with particles grouped into vertical columns — the "#blogs" base geometry. */
+/** Fills `out` with particles grouped into vertical columns — the "#blogs" stream geometry (sub-patterns 0 and 2). */
 const buildColumnAnchors = (out: Float32Array, width: number, height: number) => {
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const i3 = i * 3;
@@ -198,19 +227,107 @@ const buildColumnAnchors = (out: Float32Array, width: number, height: number) =>
   }
 };
 
+/** Fills `out` with a fibonacci-sphere shell — the "#intro" sub-pattern 1 base geometry, radially pulsed at runtime. */
+const buildSphereAnchors = (out: Float32Array, width: number, height: number) => {
+  const radius = Math.min(width, height) * 0.42;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const i3 = i * 3;
+    const y = 1 - (i / Math.max(1, PARTICLE_COUNT - 1)) * 2; // 1 .. -1
+    const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = goldenAngle * i;
+    out[i3] = Math.cos(theta) * radiusAtY * radius;
+    out[i3 + 1] = y * radius;
+    out[i3 + 2] = Math.sin(theta) * radiusAtY * radius;
+  }
+};
+
+/** Fills `out` with a flat X/Z sheet (Y left at 0) — the "#intro" sub-pattern 2 base geometry for the sine-wave surface. */
+const buildWaveAnchors = (out: Float32Array, width: number) => {
+  const cols = GRID_COLS;
+  const rows = Math.ceil(PARTICLE_COUNT / cols);
+  const depth = FIELD_DEPTH * 3;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const i3 = i * 3;
+    const col = i % cols;
+    const row = Math.floor(i / cols) % rows;
+    out[i3] = (col / (cols - 1) - 0.5) * width;
+    out[i3 + 1] = 0;
+    out[i3 + 2] = (row / (rows - 1) - 0.5) * depth;
+  }
+};
+
+/** Fills `out` with a uniform random box scatter — the "#projects" sub-pattern 2 "dispersed data nodes" geometry. */
+const buildDispersedAnchors = (out: Float32Array, width: number, height: number) => {
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const i3 = i * 3;
+    out[i3] = (Math.random() - 0.5) * width * 1.1;
+    out[i3 + 1] = (Math.random() - 0.5) * height * 1.1;
+    out[i3 + 2] = (Math.random() - 0.5) * FIELD_DEPTH * 2;
+  }
+};
+
+/**
+ * Fills `out` (stride 4: [radius, angle0, y, angularSpeed]) with concentric
+ * ring/orbital assignments — the "#projects" sub-pattern 1 geometry. Rings
+ * are rotated live in `useFrame` (`angle0 + t * angularSpeed`) rather than
+ * baked into a static position, so the orbitals keep spinning continuously;
+ * inner rings are given a faster angular speed for a Kepler-like feel.
+ */
+const buildRingSeeds = (out: Float32Array, width: number, height: number) => {
+  const maxRadius = Math.min(width, height) * 0.5;
+  const perRing = Math.max(1, Math.floor(PARTICLE_COUNT / RING_COUNT));
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const i4 = i * 4;
+    const ring = i % RING_COUNT;
+    const indexInRing = Math.floor(i / RING_COUNT);
+    const ringFraction = (ring + 1) / RING_COUNT;
+    out[i4] = maxRadius * ringFraction;
+    out[i4 + 1] = (indexInRing / perRing) * Math.PI * 2 + ring * 0.4;
+    out[i4 + 2] = (ring / (RING_COUNT - 1) - 0.5) * height * 0.3;
+    out[i4 + 3] = 0.5 / ringFraction;
+  }
+};
+
+/**
+ * Fills `out` (stride 4: [radius, angle0, y, angularSpeed]) with a
+ * double-helix / DNA-strand assignment — the "#blogs" sub-pattern 1
+ * geometry. Alternating particles belong to one of two strands (offset by
+ * `PI`) spiraling around a shared vertical axis; also rotated live in
+ * `useFrame` for a continuously-spinning helix.
+ */
+const buildHelixSeeds = (out: Float32Array, height: number) => {
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const i4 = i * 4;
+    const strand = i % 2;
+    const along = i / Math.max(1, PARTICLE_COUNT - 1); // 0 .. 1
+    out[i4] = HELIX_RADIUS;
+    out[i4 + 1] = along * Math.PI * 2 * HELIX_TURNS + strand * Math.PI;
+    out[i4 + 2] = (along - 0.5) * height * 1.6;
+    out[i4 + 3] = 0.6;
+  }
+};
+
 /**
  * A full-screen particle field whose physics, distribution, and mouse
- * interaction change drastically with `activeSection`:
- *  - "#intro": a stable, breathing 3D grid with elastic mouse repulsion.
- *  - "#projects": a chaotic, rotating swirl with explosive mouse scatter.
- *  - "#blogs": vertical data streams drifting upward with a directional
- *    mouse "wake" instead of radial repulsion.
+ * interaction change drastically with `activeSection`, and which also
+ * auto-cycles through 3 sub-patterns *within* each section every
+ * `SUB_PATTERN_DURATION` seconds (driven by `state.clock.elapsedTime`,
+ * see `useFrame` below):
+ *  - "#intro": loose 3D grid → expanding/contracting sphere → sine-wave surface.
+ *  - "#projects": chaotic Brownian swirl → concentric orbiting rings →
+ *    dispersed data nodes.
+ *  - "#blogs": upward data stream → double-helix / DNA spiral → downward
+ *    "falling rain" stream.
  *
  * A single `THREE.Points` draw call whose positions are mutated directly in
  * typed arrays every frame (no React state, no per-particle objects). Every
- * scalar physics global (radius/strength/friction/etc.) and every particle
- * color eases toward its target with `THREE.MathUtils.lerp` /
- * `THREE.Color.lerp`, so section changes morph smoothly instead of popping.
+ * scalar physics global (radius/strength/friction/etc.), every particle
+ * color, and every structural sub-pattern target eases toward its goal with
+ * `THREE.MathUtils.lerp` / `THREE.Color.lerp`, so section changes *and*
+ * sub-pattern changes morph smoothly instead of popping — and since mouse
+ * repulsion/wake perturbs `velocities` independently of the morph target,
+ * it keeps working exactly the same while particles are mid-morph.
  */
 export const AntigravityParticles = () => {
   const pointsRef = useRef<THREE.Points>(null);
@@ -230,8 +347,13 @@ export const AntigravityParticles = () => {
     positions,
     colors,
     gridAnchors,
+    sphereAnchors,
+    waveAnchors,
     swirlAnchors,
+    ringSeeds,
+    dispersedAnchors,
     columnAnchors,
+    helixSeeds,
     anchors,
     velocities,
     seeds,
@@ -240,10 +362,16 @@ export const AntigravityParticles = () => {
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const colors = new Float32Array(PARTICLE_COUNT * 3);
     const gridAnchors = new Float32Array(PARTICLE_COUNT * 3);
+    const sphereAnchors = new Float32Array(PARTICLE_COUNT * 3);
+    const waveAnchors = new Float32Array(PARTICLE_COUNT * 3);
     const swirlAnchors = new Float32Array(PARTICLE_COUNT * 3);
+    const ringSeeds = new Float32Array(PARTICLE_COUNT * 4);
+    const dispersedAnchors = new Float32Array(PARTICLE_COUNT * 3);
     const columnAnchors = new Float32Array(PARTICLE_COUNT * 3);
-    // Current, continuously-morphed anchor — eases between the three base
-    // geometries above whenever `activeSection` changes.
+    const helixSeeds = new Float32Array(PARTICLE_COUNT * 4);
+    // Current, continuously-morphed structural anchor — eases toward
+    // whichever of the nine base geometries above is active whenever
+    // `activeSection` or the auto-cycling sub-pattern changes.
     const anchors = new Float32Array(PARTICLE_COUNT * 3);
     const velocities = new Float32Array(PARTICLE_COUNT * 3);
     // Per-particle random phase/frequency seeds so drift never looks uniform.
@@ -251,8 +379,13 @@ export const AntigravityParticles = () => {
     const colorSlots = new Uint8Array(PARTICLE_COUNT);
 
     buildGridAnchors(gridAnchors, fieldWidth, fieldHeight);
+    buildSphereAnchors(sphereAnchors, fieldWidth, fieldHeight);
+    buildWaveAnchors(waveAnchors, fieldWidth);
     buildSwirlAnchors(swirlAnchors, fieldWidth, fieldHeight);
+    buildRingSeeds(ringSeeds, fieldWidth, fieldHeight);
+    buildDispersedAnchors(dispersedAnchors, fieldWidth, fieldHeight);
     buildColumnAnchors(columnAnchors, fieldWidth, fieldHeight);
+    buildHelixSeeds(helixSeeds, fieldHeight);
 
     const initialTheme = SECTION_THEMES.intro;
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -276,8 +409,13 @@ export const AntigravityParticles = () => {
       positions,
       colors,
       gridAnchors,
+      sphereAnchors,
+      waveAnchors,
       swirlAnchors,
+      ringSeeds,
+      dispersedAnchors,
       columnAnchors,
+      helixSeeds,
       anchors,
       velocities,
       seeds,
@@ -308,12 +446,15 @@ export const AntigravityParticles = () => {
     }
 
     const theme = SECTION_THEMES[activeSection];
-    const targetAnchors =
-      activeSection === "projects"
-        ? swirlAnchors
-        : activeSection === "blogs"
-          ? columnAnchors
-          : gridAnchors;
+
+    // Time-based sub-pattern loop timer: every `SUB_PATTERN_DURATION`
+    // seconds of `state.clock.elapsedTime`, advance to the next of the 3
+    // shape variations within the active section. Purely derived from the
+    // clock (no `useState`), so it costs nothing and never drifts out of
+    // sync across remounts.
+    const t = state.clock.elapsedTime;
+    const subPattern = Math.floor(t / SUB_PATTERN_DURATION) % SUB_PATTERN_COUNT;
+    const mode = SUB_PATTERN_MODES[activeSection][subPattern];
 
     // Ease every scalar physics global toward the active section's target —
     // this is what lets radius/strength/friction morph smoothly instead of
@@ -337,24 +478,14 @@ export const AntigravityParticles = () => {
       paramAlpha
     );
     params.returnLambda = THREE.MathUtils.lerp(params.returnLambda, theme.returnLambda, paramAlpha);
-    params.breatheAmplitude = THREE.MathUtils.lerp(
-      params.breatheAmplitude,
-      theme.breatheAmplitude,
-      paramAlpha
-    );
-    params.brownianAmplitude = THREE.MathUtils.lerp(
-      params.brownianAmplitude,
-      theme.brownianAmplitude,
-      paramAlpha
-    );
     params.rotationSpeed = THREE.MathUtils.lerp(
       params.rotationSpeed,
       theme.rotationSpeed,
       paramAlpha
     );
-    params.streamSpeed = THREE.MathUtils.lerp(params.streamSpeed, theme.streamSpeed, paramAlpha);
 
-    // "#projects": slow whole-field rotation around Y.
+    // "#projects": slow whole-field rotation around Y, layered on top of the
+    // individually-spinning rings/helix for extra depth.
     if (pointsRef.current) {
       pointsRef.current.rotation.y += params.rotationSpeed * delta;
     }
@@ -391,7 +522,6 @@ export const AntigravityParticles = () => {
     const posArray = posAttr.array as Float32Array;
     const colorAttr = geometry.attributes.color as THREE.BufferAttribute;
     const colorArray = colorAttr.array as Float32Array;
-    const t = state.clock.elapsedTime;
     const mx = mouseWorld.current.x;
     const my = mouseWorld.current.y;
     const mz = mouseWorld.current.z;
@@ -400,49 +530,139 @@ export const AntigravityParticles = () => {
     const anchorMorphAlpha = 1 - Math.exp(-ANCHOR_MORPH_LAMBDA * delta);
     const colorAlpha = 1 - Math.exp(-COLOR_LERP_LAMBDA * delta);
 
-    // "#blogs": particles stream upward and wrap around the camera's visible
-    // frustum instead of homing back to a fixed Y anchor.
-    const isStreaming = activeSection === "blogs";
+    // "#blogs" sub-patterns 0/2: particles stream up/down and wrap around
+    // the camera's visible frustum instead of homing back to a fixed Y anchor.
     const topBound = (state.viewport.height * FIELD_OVERSCAN) / 2;
     const streamRange = topBound * 2;
+    // "#intro" sub-pattern 1: whole-field radial pulse ("expanding/contracting sphere").
+    const spherePulse = 1 + Math.sin(t * SPHERE_PULSE_SPEED) * SPHERE_PULSE_AMPLITUDE;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3;
-
-      // Morph this particle's anchor toward the active section's base
-      // geometry (grid / swirl / columns).
-      anchors[i3] += (targetAnchors[i3] - anchors[i3]) * anchorMorphAlpha;
-      anchors[i3 + 1] += (targetAnchors[i3 + 1] - anchors[i3 + 1]) * anchorMorphAlpha;
-      anchors[i3 + 2] += (targetAnchors[i3 + 2] - anchors[i3 + 2]) * anchorMorphAlpha;
-
-      // Ambient animation: "#intro" breathes on Y, "#projects" adds Brownian
-      // jitter on all axes — cheap sine-based motion with no per-frame
-      // allocation.
       const phase = seeds[i * 2];
       const freq = seeds[i * 2 + 1];
-      const breatheY = Math.sin(t * 0.35 * freq + phase) * params.breatheAmplitude;
-      const brownianX = Math.sin(t * 0.9 * freq + phase) * params.brownianAmplitude;
-      const brownianY = Math.cos(t * 0.8 * freq * 1.3 + phase) * params.brownianAmplitude;
-      const brownianZ = Math.sin(t * 0.7 * freq * 0.6 + phase * 1.7) * params.brownianAmplitude;
 
-      const targetX = anchors[i3] + brownianX;
-      const targetY = anchors[i3 + 1] + breatheY + brownianY;
-      const targetZ = anchors[i3 + 2] + brownianZ;
+      // Pick this frame's structural target for the active sub-pattern.
+      // Static patterns read directly from a pre-built anchor array; the
+      // rotating ones (rings/helix) compute a live orbiting position from
+      // their stored [radius, angle0, y, angularSpeed] seeds so the
+      // orbitals/helix keep spinning continuously.
+      let structX: number;
+      let structY: number;
+      let structZ: number;
+      switch (mode) {
+        case "sphere":
+          structX = sphereAnchors[i3] * spherePulse;
+          structY = sphereAnchors[i3 + 1] * spherePulse;
+          structZ = sphereAnchors[i3 + 2] * spherePulse;
+          break;
+        case "wave":
+          structX = waveAnchors[i3];
+          structY = 0;
+          structZ = waveAnchors[i3 + 2];
+          break;
+        case "swirl":
+          structX = swirlAnchors[i3];
+          structY = swirlAnchors[i3 + 1];
+          structZ = swirlAnchors[i3 + 2];
+          break;
+        case "rings": {
+          const i4 = i * 4;
+          const radius = ringSeeds[i4];
+          const angle = ringSeeds[i4 + 1] + t * ringSeeds[i4 + 3];
+          structX = Math.cos(angle) * radius;
+          structY = ringSeeds[i4 + 2];
+          structZ = Math.sin(angle) * radius;
+          break;
+        }
+        case "dispersed":
+          structX = dispersedAnchors[i3];
+          structY = dispersedAnchors[i3 + 1];
+          structZ = dispersedAnchors[i3 + 2];
+          break;
+        case "streamUp":
+        case "streamDown":
+          structX = columnAnchors[i3];
+          structY = columnAnchors[i3 + 1];
+          structZ = columnAnchors[i3 + 2];
+          break;
+        case "helix": {
+          const i4 = i * 4;
+          const radius = helixSeeds[i4];
+          const angle = helixSeeds[i4 + 1] + t * helixSeeds[i4 + 3];
+          structX = Math.cos(angle) * radius;
+          structY = helixSeeds[i4 + 2];
+          structZ = Math.sin(angle) * radius;
+          break;
+        }
+        case "grid":
+        default:
+          structX = gridAnchors[i3];
+          structY = gridAnchors[i3 + 1];
+          structZ = gridAnchors[i3 + 2];
+          break;
+      }
+
+      // Morph this particle's anchor toward the active sub-pattern's
+      // structural target — this is what makes both section switches *and*
+      // in-section sub-pattern cycling reshape the field smoothly.
+      anchors[i3] += (structX - anchors[i3]) * anchorMorphAlpha;
+      anchors[i3 + 1] += (structY - anchors[i3 + 1]) * anchorMorphAlpha;
+      anchors[i3 + 2] += (structZ - anchors[i3 + 2]) * anchorMorphAlpha;
+
+      // Ambient animation layered on top of the eased anchor — cheap
+      // sine-based motion with no per-frame allocation. Each sub-pattern
+      // gets its own flavor of idle life (grid breathes, the wave ripples,
+      // the swirl jitters like Brownian motion, dispersed nodes drift lightly).
+      let ambientX = 0;
+      let ambientY = 0;
+      let ambientZ = 0;
+      switch (mode) {
+        case "grid":
+          ambientY = Math.sin(t * 0.35 * freq + phase) * BREATHE_AMPLITUDE;
+          break;
+        case "wave":
+          ambientY =
+            Math.sin(anchors[i3] * 0.5 + t * 0.8) * WAVE_AMPLITUDE_A +
+            Math.cos(anchors[i3 + 2] * 0.6 + t * 0.6) * WAVE_AMPLITUDE_B;
+          break;
+        case "swirl":
+          ambientX = Math.sin(t * 0.9 * freq + phase) * BROWNIAN_AMPLITUDE;
+          ambientY = Math.cos(t * 0.8 * freq * 1.3 + phase) * BROWNIAN_AMPLITUDE;
+          ambientZ = Math.sin(t * 0.7 * freq * 0.6 + phase * 1.7) * BROWNIAN_AMPLITUDE;
+          break;
+        case "dispersed":
+          ambientX = Math.sin(t * 0.5 * freq + phase) * DISPERSED_JITTER;
+          ambientY = Math.cos(t * 0.4 * freq + phase) * DISPERSED_JITTER;
+          break;
+        default:
+          break;
+      }
+
+      const targetX = anchors[i3] + ambientX;
+      const targetY = anchors[i3 + 1] + ambientY;
+      const targetZ = anchors[i3 + 2] + ambientZ;
 
       // Ease current position toward its drifting anchor (the "settle back"
-      // behaviour). On "#blogs", Y instead streams upward continuously and
-      // wraps at the top of the camera's frustum.
+      // behaviour). On the "#blogs" stream sub-patterns, Y instead integrates
+      // continuously up/down and wraps at the frustum edge.
       posArray[i3] += (targetX - posArray[i3]) * returnAlpha;
       posArray[i3 + 2] += (targetZ - posArray[i3 + 2]) * returnAlpha;
-      if (isStreaming) {
-        posArray[i3 + 1] += params.streamSpeed * delta;
+      if (mode === "streamUp") {
+        posArray[i3 + 1] += STREAM_SPEED * delta;
         if (posArray[i3 + 1] > topBound) posArray[i3 + 1] -= streamRange;
+      } else if (mode === "streamDown") {
+        posArray[i3 + 1] -= STREAM_SPEED * delta;
+        if (posArray[i3 + 1] < -topBound) posArray[i3 + 1] += streamRange;
       } else {
         posArray[i3 + 1] += (targetY - posArray[i3 + 1]) * returnAlpha;
       }
 
       // Radial repulsion: push outward from the mouse when within range
-      // ("#intro" elastic repulsion, "#projects" explosive scatter).
+      // ("#intro" elastic repulsion, "#projects" explosive scatter). This
+      // perturbs `velocities` independently of the morph target above, so
+      // it keeps working exactly the same whether or not the field is
+      // mid-transition between sub-patterns.
       const dx = posArray[i3] - mx;
       const dy = posArray[i3 + 1] - my;
       const dz = posArray[i3 + 2] - mz;
