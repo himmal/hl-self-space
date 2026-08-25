@@ -12,6 +12,8 @@ export const StatusHUD = () => {
   const collectedFragments = useAppStore((state) => state.collectedFragments);
   const crtModeEnabled = useAppStore((state) => state.crtModeEnabled);
   const toggleCrtMode = useAppStore((state) => state.toggleCrtMode);
+  const audioEnabled = useAppStore((state) => state.audioEnabled);
+  const toggleAudio = useAppStore((state) => state.toggleAudio);
 
   // Clamp defensively: `collectedFragments` is persisted to localStorage, so
   // ids collected under a previous build (e.g. before a fragment was
@@ -36,13 +38,24 @@ export const StatusHUD = () => {
         />
       </div>
       <span>Signal Strength: {signalPercent}%</span>
-      <button
-        type="button"
-        onClick={toggleCrtMode}
-        className="mt-1 cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
-      >
-        CRT MODE: {crtModeEnabled ? "ON" : "OFF"}
-      </button>
+      <div className="mt-1 flex gap-1">
+        <button
+          type="button"
+          onClick={toggleCrtMode}
+          className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        >
+          CRT MODE: {crtModeEnabled ? "ON" : "OFF"}
+        </button>
+        <button
+          type="button"
+          onClick={toggleAudio}
+          aria-pressed={audioEnabled}
+          aria-label={audioEnabled ? "Mute audio" : "Unmute audio"}
+          className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        >
+          AUDIO: {audioEnabled ? "ON" : "OFF"}
+        </button>
+      </div>
     </div>
   );
 };
