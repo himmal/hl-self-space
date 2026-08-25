@@ -266,10 +266,10 @@ Rules to enforce:
 
 ### 4.5 Suggested Rollout Order
 
-- [ ] **Phase 1 (low risk, high polish):** hover distortions, HUD corner
+- [x] **Phase 1 (low risk, high polish):** hover distortions, HUD corner
       brackets, status ticker, CRT overlay toggle — pure CSS, no 3D/store
       changes beyond a couple of boolean flags.
-- [ ] **Phase 2 (state-driven UI):** `StatusHUD`, `CommandTerminal`,
+- [x] **Phase 2 (state-driven UI):** `StatusHUD`, `CommandTerminal`,
       collectible fragments' UI progress indicator, `audioEnabled` toggle +
       basic SFX.
 - [x] **Phase 3 (3D depth features):** `CameraRig` waypoint travel, fog/parallax

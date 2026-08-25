@@ -10,12 +10,14 @@ import { WarpParticles } from "./WarpParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
 
-// Section-themed grid palettes — cyan/blue for intro, magenta/violet for
-// projects, amber/green for blog. Kept module-level to avoid re-allocation.
+// Section-themed grid palettes — a single muted slate/accent scheme shared
+// across all sections (see docs/ARCHITECTURE.md §5.2) so switching sections
+// no longer washes the scene in a different neon hue. Only the fog tint and
+// accent shift subtly between sections to preserve a sense of place.
 const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: string }> = {
-  intro: { colorA: "#00ffcc", colorB: "#0066ff", fog: "#001a1a" },
-  projects: { colorA: "#ff2fd0", colorB: "#7a1fff", fog: "#1a0022" },
-  blog: { colorA: "#ffb020", colorB: "#33cc66", fog: "#1a1400" },
+  intro: { colorA: "#334155", colorB: "#38bdf8", fog: "#020617" },
+  projects: { colorA: "#334155", colorB: "#2dd4bf", fog: "#020617" },
+  blog: { colorA: "#334155", colorB: "#38bdf8", fog: "#020617" },
 };
 
 export const Scene = () => {
@@ -57,7 +59,7 @@ export const Scene = () => {
       <CameraRig />
       <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
       <group ref={groupRef}>
-        <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} />
+        <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} maxSize={5} />
         {/* Sparser, slower-rotating parallax layer for extra depth at near-zero cost */}
         <NeuralGrid
           colorA={palette.colorA}
@@ -67,6 +69,7 @@ export const Scene = () => {
           rotationSpeed={0.35}
           size={0.02}
           opacity={0.35}
+          maxSize={4}
         />
         <NeuralLinks />
         <DataFragments />
@@ -74,11 +77,11 @@ export const Scene = () => {
           <Sparkles
             key={hub.id}
             position={hub.position}
-            count={30}
-            scale={1.5}
-            size={2}
+            count={20}
+            scale={1.2}
+            size={0.6}
             speed={0.3}
-            color={palette.colorA}
+            color={palette.colorB}
           />
         ))}
         <ambientLight intensity={0.5} />

@@ -12,6 +12,8 @@ export const StatusHUD = () => {
   const collectedFragments = useAppStore((state) => state.collectedFragments);
   const crtModeEnabled = useAppStore((state) => state.crtModeEnabled);
   const toggleCrtMode = useAppStore((state) => state.toggleCrtMode);
+  const audioEnabled = useAppStore((state) => state.audioEnabled);
+  const toggleAudio = useAppStore((state) => state.toggleAudio);
 
   // Clamp defensively: `collectedFragments` is persisted to localStorage, so
   // ids collected under a previous build (e.g. before a fragment was
@@ -22,7 +24,7 @@ export const StatusHUD = () => {
   );
 
   return (
-    <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-glass-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-sci-cyan)] uppercase backdrop-blur-md">
+    <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase backdrop-blur-md">
       <span>
         Sections Visited: {visitedSections.length}/{SECTIONS.length}
       </span>
@@ -31,18 +33,29 @@ export const StatusHUD = () => {
       </span>
       <div className="h-1 w-32 bg-white/10">
         <div
-          className="h-full bg-[var(--color-sci-cyan)] transition-all duration-500"
+          className="h-full bg-[var(--color-accent)] transition-all duration-500"
           style={{ width: `${signalPercent}%` }}
         />
       </div>
       <span>Signal Strength: {signalPercent}%</span>
-      <button
-        type="button"
-        onClick={toggleCrtMode}
-        className="mt-1 cursor-pointer self-start border border-[var(--color-glass-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
-      >
-        CRT MODE: {crtModeEnabled ? "ON" : "OFF"}
-      </button>
+      <div className="mt-1 flex gap-1">
+        <button
+          type="button"
+          onClick={toggleCrtMode}
+          className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        >
+          CRT MODE: {crtModeEnabled ? "ON" : "OFF"}
+        </button>
+        <button
+          type="button"
+          onClick={toggleAudio}
+          aria-pressed={audioEnabled}
+          aria-label={audioEnabled ? "Mute audio" : "Unmute audio"}
+          className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        >
+          AUDIO: {audioEnabled ? "ON" : "OFF"}
+        </button>
+      </div>
     </div>
   );
 };

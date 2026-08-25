@@ -79,8 +79,8 @@ export const DataFragments = () => {
           >
             <octahedronGeometry args={[0.18, 0]} />
             <meshStandardMaterial
-              color={collected ? "#335544" : "#00ffcc"}
-              emissive={collected ? "#113322" : "#00ffcc"}
+              color={collected ? "#1e293b" : "#38bdf8"}
+              emissive={collected ? "#1e293b" : "#38bdf8"}
               emissiveIntensity={collected ? 0.3 : 1.4}
               transparent
               opacity={collected ? 0.35 : 0.95}

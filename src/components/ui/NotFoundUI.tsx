@@ -32,7 +32,7 @@ export const NotFoundUI = () => {
           variants={itemVariants}
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
-          className="flex items-center gap-2 text-sm tracking-widest text-[var(--color-sci-magenta)] uppercase"
+          className="flex items-center gap-2 text-sm tracking-widest text-[var(--color-accent-danger)] uppercase"
         >
           <RadioTower className="h-4 w-4" aria-hidden="true" />
           <span>Signal Lost</span>
@@ -41,21 +41,21 @@ export const NotFoundUI = () => {
         <motion.h1
           variants={itemVariants}
           data-glitch-trigger="true"
-          className="text-glitch text-6xl text-[var(--color-sci-cyan)] sm:text-7xl"
+          className="text-glitch text-6xl text-[var(--color-accent)] sm:text-7xl"
         >
           404
         </motion.h1>
 
         <motion.p
           variants={itemVariants}
-          className="text-lg font-semibold tracking-wide text-[var(--color-sci-cyan)] uppercase"
+          className="text-lg font-semibold tracking-wide text-[var(--color-accent)] uppercase"
         >
           Neural Grid Disconnection
         </motion.p>
 
         <motion.p
           variants={itemVariants}
-          className="max-w-md text-sm text-[var(--color-sci-amber)]"
+          className="max-w-md text-sm text-[var(--color-accent-warn)]"
         >
           The node you tried to reach does not exist in this sector of the grid. The requested
           coordinates returned no signal.
@@ -69,7 +69,7 @@ export const NotFoundUI = () => {
         <motion.div variants={itemVariants}>
           <Link
             to="/"
-            className="inline-block rounded-md border border-[var(--color-sci-cyan)] px-6 py-3 text-sm font-bold tracking-widest text-[var(--color-sci-cyan)] uppercase shadow-[0_0_20px_rgba(0,255,204,0.25)] transition-all duration-300 hover:bg-[var(--color-sci-cyan)] hover:text-[var(--color-sci-bg)] hover:shadow-[0_0_30px_rgba(0,255,204,0.6)]"
+            className="inline-block rounded-md border border-[var(--color-accent)] px-6 py-3 text-sm font-bold tracking-widest text-[var(--color-accent)] uppercase shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-300 hover:bg-[var(--color-accent)] hover:text-[var(--color-bg)] hover:shadow-[0_0_30px_rgba(56,189,248,0.45)]"
           >
             Re-establish Link
           </Link>

@@ -2,12 +2,18 @@
 
 /* 1. THEME OVERRIDES (Equivalent to MUI's createTheme) */
 @theme {
-  --color-sci-cyan: #00ffcc;
-  --color-sci-magenta: #ff2fd0;
-  --color-sci-amber: #ffb020;
-  --color-sci-bg: #050505;
-  --color-glass-bg: rgba(0, 20, 20, 0.6);
-  --color-glass-border: rgba(0, 255, 204, 0.3);
+  /* Professional slate + single accent palette (see docs/ARCHITECTURE.md §5.2).
+     Replaces the prior saturated neon cyan/magenta/amber scheme, which — at
+     full opacity against the near-black background — produced poor,
+     eye-straining contrast and oversized glowing blobs. Values below are
+     chosen to keep body text / accents at >= 7:1 contrast (WCAG AAA) against
+     `--color-bg`, and >= 4.5:1 (WCAG AA) against the glass-card surface. */
+  --color-accent: #38bdf8;
+  --color-accent-danger: #fb7185;
+  --color-accent-warn: #fbbf24;
+  --color-bg: #020617;
+  --color-surface: rgba(15, 23, 42, 0.78);
+  --color-border: rgba(56, 189, 248, 0.25);
 
   --font-mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
@@ -15,8 +21,8 @@
 /* 2. BASE STYLES */
 @layer base {
   body {
-    background-color: var(--color-sci-bg);
-    color: var(--color-sci-cyan);
+    background-color: var(--color-bg);
+    color: var(--color-accent);
     font-family: var(--font-mono);
     overflow-x: hidden;
     margin: 0;
@@ -46,8 +52,8 @@
   /* Futuristic Glassmorphism Card (Equivalent to MUI <Card />) */
   .glass-card {
     position: relative;
-    background-color: var(--color-glass-bg);
-    border: 1px solid var(--color-glass-border);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 2rem;
@@ -58,8 +64,8 @@
 
   .glass-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
-    border-color: var(--color-sci-cyan);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.18);
+    border-color: var(--color-accent);
   }
 
   /* Sci-fi hover "scan sweep" sheen, pure CSS/no JS cost */
@@ -70,7 +76,7 @@
     background: linear-gradient(
       115deg,
       transparent 30%,
-      rgba(0, 255, 204, 0.15) 50%,
+      rgba(56, 189, 248, 0.12) 50%,
       transparent 70%
     );
     transform: translateX(-120%);
@@ -87,8 +93,8 @@
     font-size: 3rem;
     font-weight: bold;
     text-shadow:
-      2px 2px 0px rgba(0, 255, 255, 0.5),
-      -2px -2px 0px rgba(255, 0, 255, 0.5);
+      1px 1px 0px rgba(56, 189, 248, 0.35),
+      -1px -1px 0px rgba(148, 163, 184, 0.35);
     letter-spacing: 0.1em;
   }
 
@@ -117,8 +123,8 @@
   /* Hidden command terminal panel */
   .terminal-panel {
     background-color: rgba(0, 10, 10, 0.92);
-    border: 1px solid var(--color-sci-cyan);
-    box-shadow: 0 0 30px rgba(0, 255, 204, 0.25);
+    border: 1px solid var(--color-accent);
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
     font-family: var(--font-mono);
   }
 
@@ -133,7 +139,7 @@
     position: absolute;
     width: 10px;
     height: 10px;
-    border-color: var(--color-sci-cyan);
+    border-color: var(--color-accent);
     opacity: 0;
     transition: opacity 0.2s ease;
     pointer-events: none;

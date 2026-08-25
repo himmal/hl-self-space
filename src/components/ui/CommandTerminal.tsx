@@ -86,7 +86,7 @@ export const CommandTerminal = () => {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open command terminal (Ctrl+')"
-        className="hud-corner-bracket fixed bottom-4 left-4 z-30 flex cursor-pointer items-center gap-2 border border-[var(--color-glass-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-sci-cyan)] uppercase backdrop-blur-md transition-opacity hover:opacity-100"
+        className="hud-corner-bracket fixed bottom-4 left-4 z-30 flex cursor-pointer items-center gap-2 border border-[var(--color-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase backdrop-blur-md transition-opacity hover:opacity-100"
       >
         <TerminalSquare className="h-3.5 w-3.5" /> Terminal (Ctrl+&apos;)
       </button>
@@ -94,7 +94,7 @@ export const CommandTerminal = () => {
   }
 
   return (
-    <div className="terminal-panel fixed bottom-4 left-4 z-30 flex w-80 flex-col gap-2 p-3 text-xs text-[var(--color-sci-cyan)]">
+    <div className="terminal-panel fixed bottom-4 left-4 z-30 flex w-80 flex-col gap-2 p-3 text-xs text-[var(--color-accent)]">
       <div className="flex items-center justify-between">
         <span className="tracking-widest uppercase">Command Terminal</span>
         <button
@@ -109,7 +109,7 @@ export const CommandTerminal = () => {
       <div className="max-h-40 overflow-y-auto whitespace-pre-wrap opacity-80">
         {history.join("\n")}
       </div>
-      <div className="flex items-center gap-2 border-t border-[var(--color-glass-border)] pt-2">
+      <div className="flex items-center gap-2 border-t border-[var(--color-border)] pt-2">
         <span>$</span>
         <input
           ref={inputRef}

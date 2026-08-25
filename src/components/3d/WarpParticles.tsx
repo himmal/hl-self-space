@@ -13,7 +13,7 @@ const WARP_DAMP_LAMBDA = 6;
 // particle away from the camera along its own random `aStretch` factor,
 // simulating a "hyperspace jump" without mutating buffer geometry per-frame.
 const WarpMaterialImpl = shaderMaterial(
-  { uProgress: 0, uColor: new THREE.Color("#00ffcc") },
+  { uProgress: 0, uColor: new THREE.Color("#38bdf8") },
   /* glsl */ `
     uniform float uProgress;
     attribute float aStretch;

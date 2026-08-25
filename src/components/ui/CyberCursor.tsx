@@ -61,7 +61,7 @@ export const CyberCursor = () => {
     <div
       ref={dotRef}
       aria-hidden="true"
-      className="pointer-events-none fixed top-0 left-0 z-50 hidden h-4 w-4 rounded-full border border-[var(--color-sci-cyan)] mix-blend-difference md:block"
+      className="pointer-events-none fixed top-0 left-0 z-50 hidden h-4 w-4 rounded-full border border-[var(--color-accent)] mix-blend-difference md:block"
       style={{ willChange: "transform" }}
     />
   );
