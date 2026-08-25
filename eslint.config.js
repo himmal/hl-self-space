@@ -54,6 +54,7 @@ export default tseslint.config(
             "intensity",
             "transparent",
             "vertexColors",
+            "sizeAttenuation",
           ],
         },
       ],
