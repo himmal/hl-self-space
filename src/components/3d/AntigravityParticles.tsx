@@ -93,6 +93,11 @@ export const AntigravityParticles = () => {
     mouseNdc.current.set(state.pointer.x, state.pointer.y);
     raycaster.current.setFromCamera(mouseNdc.current, camera);
     raycaster.current.ray.intersectPlane(dropPlane.current, mouseWorld.current);
+    // `posArray` stores positions in the points object's *local* space, which
+    // may be non-uniformly scaled (see `scale` below) to match the viewport
+    // aspect ratio. Transform the world-space mouse point into that same
+    // local space so distance checks stay circular/undistorted.
+    pointsRef.current!.worldToLocal(mouseWorld.current);
 
     const posAttr = geometry.attributes.position as THREE.BufferAttribute;
     const posArray = posAttr.array as Float32Array;
