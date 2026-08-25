@@ -2,11 +2,13 @@ import { useEffect, useRef } from "react";
 import { useAppStore, type Section } from "../store/useAppStore";
 
 // Fraction of a section's height (from the top of the viewport, below the
-// fixed navbar) treated as the "active" zone. A tall top margin and a short
-// bottom margin bias the observer toward whichever section occupies the
-// upper portion of the screen, which reads as the "current" section while
-// scrolling — closer to typical scroll-spy behaviour than a naive 50% rule.
-const ROOT_MARGIN = "-15% 0px -70% 0px";
+// fixed navbar) treated as the "active" zone. Trimming both the top and
+// bottom by 10% keeps the intersection observer from firing on a sliver of
+// a section that has barely entered/exited the viewport — the previous
+// asymmetric margin let a section register as "most visible" for a single
+// frame while scrolling past it, causing `activeSection` to flap back to an
+// earlier section before settling (see docs/ARCHITECTURE.md §5.4/§6).
+const ROOT_MARGIN = "-10% 0px -10% 0px";
 
 /**
  * Scroll-spy: watches each `#id` section listed in `sectionIds` with an
@@ -48,7 +50,7 @@ export const useActiveSection = (sectionIds: readonly Section[]) => {
 
         if (bestId && bestRatio > 0) setActiveSection(bestId);
       },
-      { rootMargin: ROOT_MARGIN, threshold: [0, 0.25, 0.5, 0.75, 1] }
+      { rootMargin: ROOT_MARGIN, threshold: [0, 0.3, 0.5, 0.75, 1] }
     );
 
     elements.forEach(({ el }) => observer.observe(el));
