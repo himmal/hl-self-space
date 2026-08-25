@@ -22,3 +22,10 @@ You are an expert React 19, React Three Fiber (R3F), and Three.js frontend archi
 # Code Style
 - Use arrow functions for components.
 - Do not manually format code in your output. Assume Prettier and the Tailwind plugin will format standard indentation and sort Tailwind classes.
+
+# SPA Migration Strategy (see `docs/ARCHITECTURE.md` §5 for full detail)
+- **Mouse tracking:** Read cursor position from a `window`-level `mousemove` listener (a shared `useGlobalPointer` hook), not `state.pointer`/canvas pointer events — the scrollable DOM overlay sits above the fixed canvas and blocks canvas-level pointer events.
+- **Theme:** Use the professional slate + single-accent palette (`--color-bg`, `--color-surface`, `--color-border`, `--color-accent`, etc.) instead of neon cyan/magenta/amber. No oversized glow/bloom effects.
+- **Structure:** The app is a single scrollable page (`Home.tsx`) with `<section id="intro">`, `<section id="projects">`, `<section id="blog">` — not router-switched pages.
+- **Navigation:** Nav links are `<a href="#section-id">` anchors with `scroll-behavior: smooth`, not click handlers that swap visible content.
+- **Scroll animations:** Use `motion` (imported from `"motion/react"` — the Framer Motion package is installed under this renamed package) with `whileInView`/`viewport={{ once: true }}` for section fade-in/slide-up; do not add a separate `framer-motion` dependency.
