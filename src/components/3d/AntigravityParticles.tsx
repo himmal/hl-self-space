@@ -434,6 +434,13 @@ export const AntigravityParticles = () => {
   // section transitions feel like a morph rather than a hard cut.
   const currentParams = useRef({ ...SECTION_THEMES.intro });
 
+  // Tracks which section the sub-pattern timer is counting from, and the
+  // clock time at which the section (most recently) became active — so each
+  // section's 3-pattern cycle always restarts at its own sub-pattern 0
+  // instead of picking up wherever the global clock happens to land.
+  const sectionStartTime = useRef(0);
+  const trackedSection = useRef(activeSection);
+
   useFrame((state, delta) => {
     const geometry = pointsRef.current?.geometry;
     if (!geometry) return;
@@ -447,13 +454,19 @@ export const AntigravityParticles = () => {
 
     const theme = SECTION_THEMES[activeSection];
 
+    if (trackedSection.current !== activeSection) {
+      trackedSection.current = activeSection;
+      sectionStartTime.current = state.clock.elapsedTime;
+    }
+
     // Time-based sub-pattern loop timer: every `SUB_PATTERN_DURATION`
-    // seconds of `state.clock.elapsedTime`, advance to the next of the 3
-    // shape variations within the active section. Purely derived from the
-    // clock (no `useState`), so it costs nothing and never drifts out of
-    // sync across remounts.
+    // seconds since this section became active, advance to the next of its
+    // 3 shape variations. Purely derived from the clock (no `useState`), so
+    // it costs nothing, never drifts out of sync across remounts, and
+    // always starts a freshly-entered section on sub-pattern 0.
     const t = state.clock.elapsedTime;
-    const subPattern = Math.floor(t / SUB_PATTERN_DURATION) % SUB_PATTERN_COUNT;
+    const sectionElapsed = t - sectionStartTime.current;
+    const subPattern = Math.floor(sectionElapsed / SUB_PATTERN_DURATION) % SUB_PATTERN_COUNT;
     const mode = SUB_PATTERN_MODES[activeSection][subPattern];
 
     // Ease every scalar physics global toward the active section's target —
@@ -622,9 +635,12 @@ export const AntigravityParticles = () => {
           ambientY = Math.sin(t * 0.35 * freq + phase) * BREATHE_AMPLITUDE;
           break;
         case "wave":
+          // Use the stable base X/Z (not the still-morphing `anchors`) as the
+          // ripple's spatial phase, so the wave shape stays spatially correct
+          // even while particles are mid-transition into this pattern.
           ambientY =
-            Math.sin(anchors[i3] * 0.5 + t * 0.8) * WAVE_AMPLITUDE_A +
-            Math.cos(anchors[i3 + 2] * 0.6 + t * 0.6) * WAVE_AMPLITUDE_B;
+            Math.sin(waveAnchors[i3] * 0.5 + t * 0.8) * WAVE_AMPLITUDE_A +
+            Math.cos(waveAnchors[i3 + 2] * 0.6 + t * 0.6) * WAVE_AMPLITUDE_B;
           break;
         case "swirl":
           ambientX = Math.sin(t * 0.9 * freq + phase) * BROWNIAN_AMPLITUDE;
