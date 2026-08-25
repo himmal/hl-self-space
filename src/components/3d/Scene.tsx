@@ -7,17 +7,19 @@ import { CameraRig } from "./CameraRig";
 import { NeuralLinks } from "./NeuralLinks";
 import { DataFragments } from "./DataFragments";
 import { WarpParticles } from "./WarpParticles";
+import { AntigravityParticles } from "./AntigravityParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
 
 // Section-themed grid palettes — a single muted slate/accent scheme shared
 // across all sections (see docs/ARCHITECTURE.md §5.2) so switching sections
 // no longer washes the scene in a different neon hue. Only the fog tint and
-// accent shift subtly between sections to preserve a sense of place.
+// accent shift subtly between sections to preserve a sense of place — the
+// `AntigravityParticles` field carries the drastic per-section theming.
 const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: string }> = {
   intro: { colorA: "#334155", colorB: "#38bdf8", fog: "#020617" },
-  projects: { colorA: "#334155", colorB: "#2dd4bf", fog: "#020617" },
-  blog: { colorA: "#334155", colorB: "#38bdf8", fog: "#020617" },
+  projects: { colorA: "#334155", colorB: "#2dd4bf", fog: "#0b1120" },
+  blog: { colorA: "#334155", colorB: "#38bdf8", fog: "#0c0a09" },
 };
 
 export const Scene = () => {
@@ -86,6 +88,7 @@ export const Scene = () => {
         ))}
         <ambientLight intensity={0.5} />
       </group>
+      <AntigravityParticles />
       <WarpParticles />
     </>
   );
