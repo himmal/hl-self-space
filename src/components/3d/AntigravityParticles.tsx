@@ -10,6 +10,11 @@ const PARTICLE_COUNT = 2500;
 const GRID_COLS = 25;
 const GRID_ROWS = 20;
 const GRID_LAYERS = 5;
+if (GRID_COLS * GRID_ROWS * GRID_LAYERS !== PARTICLE_COUNT) {
+  throw new Error(
+    "AntigravityParticles: GRID_COLS * GRID_ROWS * GRID_LAYERS must equal PARTICLE_COUNT"
+  );
+}
 // Number of vertical streams used by the "#blog" column layout.
 const COLUMN_COUNT = 14;
 // Multiplier applied to the live viewport size to derive the field's
@@ -26,6 +31,9 @@ const ANCHOR_MORPH_LAMBDA = 1.1;
 const PARAM_LERP_LAMBDA = 2.2;
 // Rate at which per-particle colors ease toward the active section's palette.
 const COLOR_LERP_LAMBDA = 1.6;
+// Clamp on the mouse's frame-to-frame speed used to scale the "#blog" wake
+// force, so a very fast flick can't inject an unstable amount of velocity.
+const MAX_WAKE_SPEED = 40;
 // Base point size in world units — kept microscopic per the "tiny precise dot" spec.
 const PARTICLE_SIZE = 0.035;
 const PARTICLE_MAX_PIXEL_SIZE = 5;
@@ -297,7 +305,7 @@ export const AntigravityParticles = () => {
       materialRef.current.uResolution = size.height;
     }
 
-    const theme = SECTION_THEMES[activeSection] ?? SECTION_THEMES.intro;
+    const theme = SECTION_THEMES[activeSection];
     const targetAnchors =
       activeSection === "projects"
         ? swirlAnchors
@@ -369,7 +377,7 @@ export const AntigravityParticles = () => {
       hasPrevMouse.current = true;
     }
     const wakeMagnitude = mouseVelocity.current.length();
-    const wakeSpeed = delta > 1e-5 ? wakeMagnitude / delta : 0;
+    const wakeSpeed = delta > 1e-5 ? Math.min(wakeMagnitude / delta, MAX_WAKE_SPEED) : 0;
     const wakeDirX = wakeMagnitude > 1e-4 ? mouseVelocity.current.x / wakeMagnitude : 0;
     const wakeDirY = wakeMagnitude > 1e-4 ? mouseVelocity.current.y / wakeMagnitude : 0;
 
@@ -444,9 +452,11 @@ export const AntigravityParticles = () => {
 
       // Directional wake: within the same radius, push locally along the
       // mouse's motion vector instead of radially ("#blog" parting curtain).
+      // Scaled by `wakeSpeed` so a fast flick of the mouse parts particles
+      // harder than a slow drift.
       if (params.wakeStrength > 1e-3 && dist < params.repulsionRadius && wakeSpeed > 1e-4) {
         const falloff = 1 - dist / params.repulsionRadius;
-        const force = falloff * falloff * params.wakeStrength;
+        const force = falloff * falloff * params.wakeStrength * wakeSpeed;
         velocities[i3] += wakeDirX * force * delta;
         velocities[i3 + 1] += wakeDirY * force * delta;
       }
