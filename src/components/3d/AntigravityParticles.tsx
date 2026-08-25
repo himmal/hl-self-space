@@ -15,7 +15,7 @@ if (GRID_COLS * GRID_ROWS * GRID_LAYERS !== PARTICLE_COUNT) {
     "AntigravityParticles: GRID_COLS * GRID_ROWS * GRID_LAYERS must equal PARTICLE_COUNT"
   );
 }
-// Number of vertical streams used by the "#blog" column layout.
+// Number of vertical streams used by the "#blogs" column layout.
 const COLUMN_COUNT = 14;
 // Multiplier applied to the live viewport size to derive the field's
 // half-extents, so particles always cover the visible screen (with a little
@@ -31,7 +31,7 @@ const ANCHOR_MORPH_LAMBDA = 1.1;
 const PARAM_LERP_LAMBDA = 2.2;
 // Rate at which per-particle colors ease toward the active section's palette.
 const COLOR_LERP_LAMBDA = 1.6;
-// Clamp on the mouse's frame-to-frame speed used to scale the "#blog" wake
+// Clamp on the mouse's frame-to-frame speed used to scale the "#blogs" wake
 // force, so a very fast flick can't inject an unstable amount of velocity.
 const MAX_WAKE_SPEED = 40;
 // Base point size in world units — kept microscopic per the "tiny precise dot" spec.
@@ -57,7 +57,7 @@ interface SectionTheme {
   brownianAmplitude: number;
   /** Whole-field Y-axis rotation speed, rad/s (#projects). */
   rotationSpeed: number;
-  /** Upward "data stream" drift speed on Y, world units/s (#blog). */
+  /** Upward "data stream" drift speed on Y, world units/s (#blogs). */
   streamSpeed: number;
 }
 
@@ -89,7 +89,7 @@ const SECTION_THEMES: Record<Section, SectionTheme> = {
     rotationSpeed: 0.15,
     streamSpeed: 0,
   },
-  blog: {
+  blogs: {
     colors: [new THREE.Color("#3f3f46"), new THREE.Color("#d97706"), new THREE.Color("#eab308")],
     repulsionRadius: 2.2,
     repulsionStrength: 1.5,
@@ -185,7 +185,7 @@ const buildSwirlAnchors = (out: Float32Array, width: number, height: number) => 
   }
 };
 
-/** Fills `out` with particles grouped into vertical columns — the "#blog" base geometry. */
+/** Fills `out` with particles grouped into vertical columns — the "#blogs" base geometry. */
 const buildColumnAnchors = (out: Float32Array, width: number, height: number) => {
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const i3 = i * 3;
@@ -202,7 +202,7 @@ const buildColumnAnchors = (out: Float32Array, width: number, height: number) =>
  * interaction change drastically with `activeSection`:
  *  - "#intro": a stable, breathing 3D grid with elastic mouse repulsion.
  *  - "#projects": a chaotic, rotating swirl with explosive mouse scatter.
- *  - "#blog": vertical data streams drifting upward with a directional
+ *  - "#blogs": vertical data streams drifting upward with a directional
  *    mouse "wake" instead of radial repulsion.
  *
  * A single `THREE.Points` draw call whose positions are mutated directly in
@@ -309,7 +309,7 @@ export const AntigravityParticles = () => {
     const targetAnchors =
       activeSection === "projects"
         ? swirlAnchors
-        : activeSection === "blog"
+        : activeSection === "blogs"
           ? columnAnchors
           : gridAnchors;
 
@@ -368,7 +368,7 @@ export const AntigravityParticles = () => {
       0
     );
 
-    // "#blog": directional "wake" — the mouse's frame-to-frame motion vector,
+    // "#blogs": directional "wake" — the mouse's frame-to-frame motion vector,
     // instead of its position, drives a local push in the direction of travel.
     if (hasPrevMouse.current) {
       mouseVelocity.current.subVectors(mouseWorld.current, prevMouseWorld.current);
@@ -394,9 +394,9 @@ export const AntigravityParticles = () => {
     const anchorMorphAlpha = 1 - Math.exp(-ANCHOR_MORPH_LAMBDA * delta);
     const colorAlpha = 1 - Math.exp(-COLOR_LERP_LAMBDA * delta);
 
-    // "#blog": particles stream upward and wrap around the camera's visible
+    // "#blogs": particles stream upward and wrap around the camera's visible
     // frustum instead of homing back to a fixed Y anchor.
-    const isStreaming = activeSection === "blog";
+    const isStreaming = activeSection === "blogs";
     const topBound = (state.viewport.height * FIELD_OVERSCAN) / 2;
     const streamRange = topBound * 2;
 
@@ -424,7 +424,7 @@ export const AntigravityParticles = () => {
       const targetZ = anchors[i3 + 2] + brownianZ;
 
       // Ease current position toward its drifting anchor (the "settle back"
-      // behaviour). On "#blog", Y instead streams upward continuously and
+      // behaviour). On "#blogs", Y instead streams upward continuously and
       // wraps at the top of the camera's frustum.
       posArray[i3] += (targetX - posArray[i3]) * returnAlpha;
       posArray[i3 + 2] += (targetZ - posArray[i3 + 2]) * returnAlpha;
@@ -451,7 +451,7 @@ export const AntigravityParticles = () => {
       }
 
       // Directional wake: within the same radius, push locally along the
-      // mouse's motion vector instead of radially ("#blog" parting curtain).
+      // mouse's motion vector instead of radially ("#blogs" parting curtain).
       // Scaled by `wakeSpeed` so a fast flick of the mouse parts particles
       // harder than a slow drift.
       if (params.wakeStrength > 1e-3 && dist < params.repulsionRadius && wakeSpeed > 1e-4) {

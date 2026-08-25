@@ -11,7 +11,7 @@ export interface Waypoint {
 export const SECTION_WAYPOINTS: Record<Section, Waypoint> = {
   intro: { position: [0, 0, 5], lookAt: [0, 0, 0], fov: 60 },
   projects: { position: [1.4, 0.35, 3.5], lookAt: [0.6, 0.1, -1], fov: 55 },
-  blog: { position: [-1.4, -0.3, 4.2], lookAt: [-0.6, -0.1, -1], fov: 58 },
+  blogs: { position: [-1.4, -0.3, 4.2], lookAt: [-0.6, -0.1, -1], fov: 58 },
 };
 
 // Static anchor points for the "Selected Works" (projects) and "Log" (blog)
@@ -57,7 +57,7 @@ export const FRAGMENT_HUBS: { id: string; position: [number, number, number] }[]
 export const ALL_FRAGMENT_IDS: string[] = [
   "fragment-intro",
   "fragment-projects",
-  "fragment-blog",
+  "fragment-blogs",
   "terminal-easter-egg",
   ...FRAGMENT_HUBS.map((hub) => hub.id),
 ];

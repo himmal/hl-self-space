@@ -109,9 +109,9 @@ export const Overlay = () => {
             [02. Projects]
           </button>
           <button
-            onClick={() => handleNavClick("blog")}
+            onClick={() => handleNavClick("blogs")}
             className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
-              activeSection === "blog"
+              activeSection === "blogs"
                 ? "border-[var(--color-accent)] bg-[rgba(56,189,248,0.12)] text-white"
                 : "border-transparent opacity-70 hover:opacity-100"
             }`}

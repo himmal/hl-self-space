@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const SECTIONS = ["intro", "projects", "blog"] as const;
+export const SECTIONS = ["intro", "projects", "blogs"] as const;
 export type Section = (typeof SECTIONS)[number];
 
 interface AppState {
