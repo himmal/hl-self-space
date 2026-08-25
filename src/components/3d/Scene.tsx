@@ -10,6 +10,7 @@ import { WarpParticles } from "./WarpParticles";
 import { AntigravityParticles } from "./AntigravityParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
+import { useGlobalPointer } from "../../hooks/useGlobalPointer";
 
 // Section-themed grid palettes — a single muted slate/accent scheme shared
 // across all sections (see docs/ARCHITECTURE.md §5.2) so switching sections
@@ -31,8 +32,9 @@ export const Scene = () => {
     [activeSection]
   );
   const targetFogColor = useMemo(() => new THREE.Color(palette.fog), [palette]);
+  const pointer = useGlobalPointer();
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (fogRef.current) {
       const alpha = 1 - Math.exp(-2 * delta);
       fogRef.current.color.lerp(targetFogColor, alpha);
@@ -41,8 +43,8 @@ export const Scene = () => {
     if (!groupRef.current) return;
 
     // Subtle parallax tilt based on mouse position
-    const targetMouseX = (state.pointer.x * Math.PI) / 12;
-    const targetMouseY = (state.pointer.y * Math.PI) / 12;
+    const targetMouseX = (pointer.x * Math.PI) / 12;
+    const targetMouseY = (pointer.y * Math.PI) / 12;
 
     groupRef.current.rotation.y = THREE.MathUtils.lerp(
       groupRef.current.rotation.y,

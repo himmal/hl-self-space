@@ -3,6 +3,7 @@ import { useFrame, useThree, extend } from "@react-three/fiber";
 import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { useAppStore, type Section } from "../../store/useAppStore";
+import { useGlobalPointer } from "../../hooks/useGlobalPointer";
 
 // Total particle count. Also doubles as GRID_COLS * GRID_ROWS * GRID_LAYERS
 // below so the "#intro" lattice divides evenly with no leftover particles.
@@ -215,6 +216,7 @@ export const AntigravityParticles = () => {
   const pointsRef = useRef<THREE.Points>(null);
   const materialRef = useRef<DotMaterial>(null);
   const activeSection = useAppStore((state) => state.activeSection);
+  const pointerRef = useGlobalPointer();
   const { viewport, size } = useThree();
 
   // Scatter the field across the *actual* live viewport (with a touch of
@@ -360,7 +362,11 @@ export const AntigravityParticles = () => {
     // Map the pointer's normalized device coordinates (-1..1) into the 3D
     // viewport at the field's z = 0 plane using `state.viewport`, which
     // reports the visible width/height (in world units) at that depth.
-    const { pointer } = state;
+    // Sourced from `useGlobalPointer` (a window-level listener) rather than
+    // `state.pointer`, since the transparent DOM overlay's text containers
+    // use `pointer-events-none` and would otherwise starve the canvas of
+    // move events over most of the page.
+    const pointer = pointerRef;
     prevMouseWorld.current.copy(mouseWorld.current);
     mouseWorld.current.set(
       (pointer.x * state.viewport.width) / 2,

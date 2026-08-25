@@ -54,6 +54,11 @@
     display: flex;
     flex-direction: column;
     gap: 3rem;
+    /* Fully transparent to the mouse: sits above the 3D canvas but must not
+       swallow move/drag events meant for it. Interactive descendants (nav
+       links, project/blog cards, buttons) opt back in with
+       `pointer-events-auto` (see docs/ARCHITECTURE.md §5). */
+    pointer-events: none;
   }
 
   /* Futuristic Glassmorphism Card (Equivalent to MUI <Card />) */

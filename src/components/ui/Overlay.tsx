@@ -6,32 +6,29 @@ import { useAudioManager } from "../../hooks/useAudioManager";
 import { useActiveSection } from "../../hooks/useActiveSection";
 import { PROJECT_TO_LOG, LOG_TO_PROJECT } from "../3d/sceneData";
 
-// Per-section DOM theme: background + text accent, mirroring the WebGL
-// per-section palette in `AntigravityParticles`/`Scene` (see
-// docs/ARCHITECTURE.md §5.2/§7). Applied directly to each `<section>` and
-// its heading/link accents so scrolling between sections visibly recolors
-// the page, not just the particle field.
-const SECTION_THEME: Record<Section, { bg: string; text: string; border: string; nav: string }> =
-  {
-    intro: {
-      bg: "bg-black",
-      text: "text-cyan-400",
-      border: "border-cyan-400/40",
-      nav: "border-cyan-400/60 bg-cyan-400/10 text-cyan-300",
-    },
-    projects: {
-      bg: "bg-[#0b1120]",
-      text: "text-purple-400",
-      border: "border-purple-400/40",
-      nav: "border-purple-400/60 bg-purple-400/10 text-purple-300",
-    },
-    blogs: {
-      bg: "bg-neutral-900",
-      text: "text-amber-400",
-      border: "border-amber-400/40",
-      nav: "border-amber-400/60 bg-amber-400/10 text-amber-300",
-    },
-  };
+// Per-section DOM theme: text accent, mirroring the WebGL per-section
+// palette in `AntigravityParticles`/`Scene` (see docs/ARCHITECTURE.md
+// §5.2/§7). Applied to each section's heading/link accents so scrolling
+// between sections visibly recolors the page, not just the particle field.
+// Deliberately has no `bg` — sections stay 100% transparent so the 3D canvas
+// underneath is fully visible through the text.
+const SECTION_THEME: Record<Section, { text: string; border: string; nav: string }> = {
+  intro: {
+    text: "text-cyan-400",
+    border: "border-cyan-400/40",
+    nav: "border-cyan-400/60 bg-cyan-400/10 text-cyan-300",
+  },
+  projects: {
+    text: "text-purple-400",
+    border: "border-purple-400/40",
+    nav: "border-purple-400/60 bg-purple-400/10 text-purple-300",
+  },
+  blogs: {
+    text: "text-amber-400",
+    border: "border-amber-400/40",
+    nav: "border-amber-400/60 bg-amber-400/10 text-amber-300",
+  },
+};
 
 const NAV_ITEMS: { id: Section; label: string }[] = [
   { id: "intro", label: "[01. Intro]" },
@@ -127,7 +124,7 @@ export const Overlay = () => {
               key={id}
               href={`#${id}`}
               onClick={() => playSfx("nav")}
-              className={`cursor-pointer border px-3 py-1 text-sm transition-all ${
+              className={`pointer-events-auto cursor-pointer border px-3 py-1 text-sm transition-all ${
                 activeSection === id
                   ? SECTION_THEME[id].nav
                   : "border-transparent opacity-70 hover:opacity-100"
@@ -143,7 +140,7 @@ export const Overlay = () => {
         {/* Intro Section */}
         <section
           id="intro"
-          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-4 ${SECTION_THEME.intro.bg}`}
+          className="flex min-h-screen scroll-mt-24 flex-col justify-center gap-4"
         >
           <h1
             className={`text-glitch ${SECTION_THEME.intro.text}`}
@@ -160,7 +157,7 @@ export const Overlay = () => {
         {/* Projects Showcase */}
         <section
           id="projects"
-          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-6 ${SECTION_THEME.projects.bg}`}
+          className="flex min-h-screen scroll-mt-24 flex-col justify-center gap-6"
         >
           <h2
             className={`flex items-center gap-2 border-l-2 pl-3 text-xl font-bold ${SECTION_THEME.projects.border} ${SECTION_THEME.projects.text}`}
@@ -172,7 +169,7 @@ export const Overlay = () => {
             {PROJECTS.map((proj) => (
               <div
                 key={proj.id}
-                className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
+                className={`glass-card pointer-events-auto flex cursor-pointer flex-col justify-between gap-4 ${
                   activeLinkId === proj.id ? SECTION_THEME.projects.border : ""
                 }`}
                 onMouseEnter={() => handleProjectHover(proj.id)}
@@ -211,7 +208,7 @@ export const Overlay = () => {
         {/* Blogs / Log Showcase */}
         <section
           id="blogs"
-          className={`flex min-h-screen scroll-mt-24 flex-col justify-center gap-6 ${SECTION_THEME.blogs.bg}`}
+          className="flex min-h-screen scroll-mt-24 flex-col justify-center gap-6"
         >
           <h2
             className={`flex items-center gap-2 border-l-2 pl-3 text-xl font-bold ${SECTION_THEME.blogs.border} ${SECTION_THEME.blogs.text}`}
@@ -223,7 +220,7 @@ export const Overlay = () => {
             {LOG_ENTRIES.map((entry) => (
               <div
                 key={entry.id}
-                className={`glass-card flex cursor-pointer flex-col gap-2 ${
+                className={`glass-card pointer-events-auto flex cursor-pointer flex-col gap-2 ${
                   activeLinkId === entry.id ? SECTION_THEME.blogs.border : ""
                 }`}
                 onMouseEnter={() => handleLogHover(entry.id)}
@@ -236,7 +233,7 @@ export const Overlay = () => {
           </div>
 
           {/* Footer */}
-          <footer className="mt-auto flex items-center justify-between border-t border-[var(--color-border)] pt-10 text-xs text-gray-400">
+          <footer className="pointer-events-auto mt-auto flex items-center justify-between border-t border-[var(--color-border)] pt-10 text-xs text-gray-400">
             <span>&copy; {new Date().getFullYear()} HIM // SYSTEM ONLINE</span>
             <div className="flex gap-4">
               <a
