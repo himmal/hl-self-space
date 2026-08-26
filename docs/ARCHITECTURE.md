@@ -209,3 +209,51 @@ To add a dependency: `pnpm add <package>`
 To run the dev server: `pnpm dev`
 
 Peer Dependencies: If you experience missing dependencies regarding `three` or `@react-three/fiber`, ensure you explicitly add the required package, as pnpm enforces strict module isolation.
+
+## 🕸️ 8. Portfolio Data Schema & the Relational Graph
+
+`#projects` and `#blogs` are backed by one centralized dataset instead of ad-hoc arrays scattered across DOM and WebGL components, and the WebGL "relational node" system is strictly scoped per section instead of rendering everywhere.
+
+### 8.1 Data Schema (`src/data/portfolioData.ts`)
+
+```typescript
+export interface ProjectItem {
+  id: string;
+  title: string;
+  description: string;
+  tags: string[]; // drives 3D bubble clustering in #projects
+  repoUrl: string;
+  nodeSize: number; // 3D bubble radius hint
+}
+
+export interface BlogItem {
+  id: string;
+  title: string;
+  description: string;
+  keywords: string[]; // drives curved relational edges in #blogs
+  url: string;
+  nodeSize: number;
+}
+
+export const demoData: { projects: ProjectItem[]; blogs: BlogItem[] };
+```
+
+- `demoData` is the single source of truth for both the DOM cards (`Overlay.tsx`) and the WebGL bubbles/edges (`RelationalGraph.tsx`) — a project/blog is added or edited in exactly one place.
+- `tags` (projects) and `keywords` (blogs) are plain string arrays; two items that share one or more entries are considered "related" and are pulled closer together (and, for blogs, connected by a curve) in 3D. There is no separate relationship table — the relationships are derived entirely from the overlapping strings.
+
+### 8.2 `RelationalGraph` — Section-Scoped 3D Nodes
+
+`src/components/3d/RelationalGraph.tsx` replaces the legacy, always-on `NeuralLinks` component (which rendered fixed connector curves between two hardcoded anchor points regardless of scroll position — the source of curves/bubbles bleeding into every section). It reads `activeSection` from `useAppStore` and switches behavior per section:
+
+| Section | Bubbles | Edges | Notes |
+|---|---|---|---|
+| `#intro` | None | None | Fully hidden — only the ambient `AntigravityParticles`/`NeuralGrid` field is visible. |
+| `#projects` | One glowing sphere per `demoData.projects` entry | None | Tag-based clustering only; no connector lines are ever drawn here. |
+| `#blogs` | One glowing sphere per `demoData.blogs` entry | Curved line per pair of blogs sharing a keyword | Full relational map. |
+
+Implementation notes:
+- `src/components/3d/graphLayout.ts` computes node positions once, at module load, from the static `demoData` (`computeClusterLayout`) and the shared-keyword edge list (`computeSharedEdges`) — a deterministic, distance-based stand-in for a full force-directed simulation: pairs sharing more tags/keywords relax toward a shorter target distance over a fixed number of iterations, pairs sharing nothing settle at a minimum separation. This never re-runs inside `useFrame`.
+- `src/components/3d/graphNodes.ts` holds the single precomputed `PROJECT_POSITIONS`/`BLOG_POSITIONS`/`BLOG_EDGES` derived from the layout above, consumed by both `RelationalGraph` (rendering) and `CameraRig` (hover-magnetism lookAt bias) so the two layers can't drift apart.
+- Nodes render as plain `sphereGeometry` with a `meshStandardMaterial` (transparent, low base opacity, subtle emissive glow) — a refined "glowing glass" look. No box/square/octahedron geometry is used for these nodes.
+- Hovering a blog card in `Overlay.tsx` writes its `id` into `hoveredLog` (Zustand); hovering a 3D bubble directly writes `hoveredNode`. `RelationalGraph` reads whichever is set and, inside `useFrame`, lerps each node/edge material's `color`/`opacity` toward an amber/gold highlight for the hovered node and its keyword-connected neighbors, and dims everything else — all via direct ref mutation (no `useState` in the animation loop, per §3), so hovering never triggers a WebGL re-render storm.
+
