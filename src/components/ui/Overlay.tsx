@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppStore, SECTIONS, type Section } from "../../store/useAppStore";
+import { useAppStore, SECTIONS, type Section, type ViewMode } from "../../store/useAppStore";
 import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
@@ -35,6 +35,21 @@ const NAV_ITEMS: { id: Section; label: string }[] = [
   { id: "projects", label: "[02. Projects]" },
   { id: "blogs", label: "[03. Blogs]" },
 ];
+
+// Shared "passive background vs. active pop-out" card class logic (see the
+// Graph View spec: Phase 1 dims/desaturates cards and passes pointer events
+// through to the WebGL canvas while `viewMode === "canvas"`; Phase 2 forces
+// a card back to full prominence — regardless of `viewMode` — the instant
+// its `id` matches the hovered item, whether hovered via the DOM card itself
+// or via its corresponding 3D node in `RelationalGraph`).
+const cardStateClasses = (viewMode: ViewMode, isHovered: boolean) => {
+  if (isHovered) {
+    return "pointer-events-auto scale-105 opacity-100 grayscale-0 ring-2 ring-cyan-400";
+  }
+  return viewMode === "canvas"
+    ? "pointer-events-none opacity-50 grayscale-[50%]"
+    : "pointer-events-auto opacity-100 grayscale-0";
+};
 
 export const Overlay = () => {
   const activeSection = useAppStore((state) => state.activeSection);
@@ -98,10 +113,10 @@ export const Overlay = () => {
       </header>
 
       <main
-        className={`ui-layer pt-24 transition-all duration-300 ${
+        className={`ui-layer pt-24 transition-all duration-300 ease-in-out ${
           viewMode === "canvas"
-            ? "pointer-events-none opacity-30 blur-sm"
-            : "pointer-events-auto opacity-100 blur-none"
+            ? "pointer-events-none opacity-50 grayscale-[50%]"
+            : "pointer-events-auto opacity-100 grayscale-0"
         }`}
       >
         {/* Intro Section */}
@@ -133,46 +148,47 @@ export const Overlay = () => {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {demoData.projects.map((proj) => (
-              <div
-                key={proj.id}
-                className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
-                  viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
-                } ${
-                  (hoveredProject ?? (viewMode === "canvas" ? hoveredNode : null)) === proj.id
-                    ? `${SECTION_THEME.projects.border} ring-2 ring-amber-400 opacity-100`
-                    : ""
-                }`}
-                onMouseEnter={() => setHoveredProject(proj.id)}
-                onMouseLeave={() => setHoveredProject(null)}
-              >
-                <div>
-                  <h3 className={`mb-2 text-lg font-bold ${SECTION_THEME.projects.text}`}>
-                    {proj.title}
-                  </h3>
-                  <p className="mb-4 text-sm text-gray-300">{proj.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {proj.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="border border-[var(--color-border)] bg-black/40 px-2 py-0.5 text-xs text-purple-200"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <a
-                  href={proj.repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`flex items-center gap-1 self-start text-xs tracking-wider uppercase hover:underline ${SECTION_THEME.projects.text}`}
+            {demoData.projects.map((proj) => {
+              const isHovered =
+                (hoveredProject ?? (viewMode === "canvas" ? hoveredNode : null)) === proj.id;
+              return (
+                <div
+                  key={proj.id}
+                  className={`glass-card flex cursor-pointer flex-col justify-between gap-4 transition-all duration-300 ease-in-out ${cardStateClasses(
+                    viewMode,
+                    isHovered
+                  )} ${isHovered ? SECTION_THEME.projects.border : ""}`}
+                  onMouseEnter={() => setHoveredProject(proj.id)}
+                  onMouseLeave={() => setHoveredProject(null)}
                 >
-                  Launch Repository &rarr;
-                </a>
-              </div>
-            ))}
+                  <div>
+                    <h3 className={`mb-2 text-lg font-bold ${SECTION_THEME.projects.text}`}>
+                      {proj.title}
+                    </h3>
+                    <p className="mb-4 text-sm text-gray-300">{proj.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {proj.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="border border-[var(--color-border)] bg-black/40 px-2 py-0.5 text-xs text-purple-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <a
+                    href={proj.repoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex items-center gap-1 self-start text-xs tracking-wider uppercase hover:underline ${SECTION_THEME.projects.text}`}
+                  >
+                    Launch Repository &rarr;
+                  </a>
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -188,23 +204,24 @@ export const Overlay = () => {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {demoData.blogs.map((entry) => (
-              <div
-                key={entry.id}
-                className={`glass-card flex cursor-pointer flex-col gap-2 ${
-                  viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
-                } ${
-                  (hoveredLog ?? (viewMode === "canvas" ? hoveredNode : null)) === entry.id
-                    ? `${SECTION_THEME.blogs.border} ring-2 ring-amber-400 opacity-100`
-                    : ""
-                }`}
-                onMouseEnter={() => setHoveredLog(entry.id)}
-                onMouseLeave={() => setHoveredLog(null)}
-              >
-                <h3 className={`text-lg font-bold ${SECTION_THEME.blogs.text}`}>{entry.title}</h3>
-                <p className="text-sm text-gray-300">{entry.description}</p>
-              </div>
-            ))}
+            {demoData.blogs.map((entry) => {
+              const isHovered =
+                (hoveredLog ?? (viewMode === "canvas" ? hoveredNode : null)) === entry.id;
+              return (
+                <div
+                  key={entry.id}
+                  className={`glass-card flex cursor-pointer flex-col gap-2 transition-all duration-300 ease-in-out ${cardStateClasses(
+                    viewMode,
+                    isHovered
+                  )} ${isHovered ? SECTION_THEME.blogs.border : ""}`}
+                  onMouseEnter={() => setHoveredLog(entry.id)}
+                  onMouseLeave={() => setHoveredLog(null)}
+                >
+                  <h3 className={`text-lg font-bold ${SECTION_THEME.blogs.text}`}>{entry.title}</h3>
+                  <p className="text-sm text-gray-300">{entry.description}</p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Footer */}
