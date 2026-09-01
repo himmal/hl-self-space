@@ -14,6 +14,8 @@ export const StatusHUD = () => {
   const toggleCrtMode = useAppStore((state) => state.toggleCrtMode);
   const audioEnabled = useAppStore((state) => state.audioEnabled);
   const toggleAudio = useAppStore((state) => state.toggleAudio);
+  const viewMode = useAppStore((state) => state.viewMode);
+  const setViewMode = useAppStore((state) => state.setViewMode);
 
   // Clamp defensively: `collectedFragments` is persisted to localStorage, so
   // ids collected under a previous build (e.g. before a fragment was
@@ -39,6 +41,14 @@ export const StatusHUD = () => {
       </div>
       <span>Signal Strength: {signalPercent}%</span>
       <div className="mt-1 flex gap-1">
+        <button
+          type="button"
+          onClick={() => setViewMode(viewMode === "dom" ? "canvas" : "dom")}
+          aria-pressed={viewMode === "canvas"}
+          className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
+        >
+          Toggle Graph View: {viewMode === "canvas" ? "ON" : "OFF"}
+        </button>
         <button
           type="button"
           onClick={toggleCrtMode}

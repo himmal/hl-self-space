@@ -7,26 +7,35 @@ import { StatusHUD } from "./components/ui/StatusHUD";
 import { CommandTerminal } from "./components/ui/CommandTerminal";
 import { CyberCursor } from "./components/ui/CyberCursor";
 import { NotFoundUI } from "./components/ui/NotFoundUI";
+import { useAppStore } from "./store/useAppStore";
 
-const NeuralGridExperience = () => (
-  <>
-    {/* 3D WebGL Canvas fixed to background */}
-    <div className="canvas-layer">
-      <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true, alpha: true }}>
-        <Scene />
-      </Canvas>
-    </div>
+const NeuralGridExperience = () => {
+  const viewMode = useAppStore((state) => state.viewMode);
 
-    {/* Interactive UI Overlay */}
-    <Overlay />
+  return (
+    <>
+      {/* 3D WebGL Canvas fixed to background — `.canvas-layer` sets
+          `pointer-events: none` by default so scroll/click reaches the DOM
+          overlay underneath; in `"canvas"` view mode the Tailwind utility
+          below (higher-specificity `@layer utilities`) re-enables pointer
+          events so the `RelationalGraph` nodes can be hovered/raycast. */}
+      <div className={`canvas-layer ${viewMode === "canvas" ? "pointer-events-auto" : ""}`}>
+        <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true, alpha: true }}>
+          <Scene />
+        </Canvas>
+      </div>
 
-    {/* Exploration & engagement HUD layer */}
-    <StatusHUD />
-    <CommandTerminal />
-    <CyberCursor />
-    <CrtOverlay />
-  </>
-);
+      {/* Interactive UI Overlay */}
+      <Overlay />
+
+      {/* Exploration & engagement HUD layer */}
+      <StatusHUD />
+      <CommandTerminal />
+      <CyberCursor />
+      <CrtOverlay />
+    </>
+  );
+};
 
 export function App() {
   return (

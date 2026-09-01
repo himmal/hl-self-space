@@ -38,8 +38,10 @@ const NAV_ITEMS: { id: Section; label: string }[] = [
 
 export const Overlay = () => {
   const activeSection = useAppStore((state) => state.activeSection);
+  const viewMode = useAppStore((state) => state.viewMode);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const setHoveredProject = useAppStore((state) => state.setHoveredProject);
+  const hoveredNode = useAppStore((state) => state.hoveredNode);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredLog = useAppStore((state) => state.setHoveredLog);
   const markSectionVisited = useAppStore((state) => state.markSectionVisited);
@@ -95,7 +97,13 @@ export const Overlay = () => {
         </nav>
       </header>
 
-      <main className="ui-layer pt-24">
+      <main
+        className={`ui-layer pt-24 transition-all duration-300 ${
+          viewMode === "canvas"
+            ? "pointer-events-none opacity-30 blur-sm"
+            : "pointer-events-auto opacity-100 blur-none"
+        }`}
+      >
         {/* Intro Section */}
         <section
           id="intro"
@@ -128,8 +136,12 @@ export const Overlay = () => {
             {demoData.projects.map((proj) => (
               <div
                 key={proj.id}
-                className={`glass-card pointer-events-auto flex cursor-pointer flex-col justify-between gap-4 ${
-                  hoveredProject === proj.id ? SECTION_THEME.projects.border : ""
+                className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
+                  viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
+                } ${
+                  (hoveredProject ?? hoveredNode) === proj.id
+                    ? `${SECTION_THEME.projects.border} ring-2 ring-amber-400 opacity-100`
+                    : ""
                 }`}
                 onMouseEnter={() => setHoveredProject(proj.id)}
                 onMouseLeave={() => setHoveredProject(null)}
@@ -179,8 +191,12 @@ export const Overlay = () => {
             {demoData.blogs.map((entry) => (
               <div
                 key={entry.id}
-                className={`glass-card pointer-events-auto flex cursor-pointer flex-col gap-2 ${
-                  hoveredLog === entry.id ? SECTION_THEME.blogs.border : ""
+                className={`glass-card flex cursor-pointer flex-col gap-2 ${
+                  viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
+                } ${
+                  (hoveredLog ?? hoveredNode) === entry.id
+                    ? `${SECTION_THEME.blogs.border} ring-2 ring-amber-400 opacity-100`
+                    : ""
                 }`}
                 onMouseEnter={() => setHoveredLog(entry.id)}
                 onMouseLeave={() => setHoveredLog(null)}
