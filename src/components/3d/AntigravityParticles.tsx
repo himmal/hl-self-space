@@ -46,6 +46,12 @@ const PARTICLE_MAX_PIXEL_SIZE = 5;
 // perfectly consistent regardless of frame rate or `activeSection` changes.
 const SUB_PATTERN_COUNT = 3;
 const SUB_PATTERN_DURATION = 9;
+// The very first sub-pattern hold (right after the field enters a section,
+// e.g. on initial page load into "#intro") is held much shorter than the
+// steady-state cadence above — otherwise the field sits static on "grid"
+// for a full `SUB_PATTERN_DURATION` and reads as frozen to a first-time
+// visitor before it ever starts morphing.
+const FIRST_SUB_PATTERN_DURATION = 2.5;
 
 // Ambient per-particle animation amplitudes for the "static" sub-patterns —
 // kept as simple constants (rather than section-lerped params) since they're
@@ -466,7 +472,12 @@ export const AntigravityParticles = () => {
     // always starts a freshly-entered section on sub-pattern 0.
     const t = state.clock.elapsedTime;
     const sectionElapsed = t - sectionStartTime.current;
-    const subPattern = Math.floor(sectionElapsed / SUB_PATTERN_DURATION) % SUB_PATTERN_COUNT;
+    const subPattern =
+      sectionElapsed < FIRST_SUB_PATTERN_DURATION
+        ? 0
+        : (1 +
+            Math.floor((sectionElapsed - FIRST_SUB_PATTERN_DURATION) / SUB_PATTERN_DURATION)) %
+          SUB_PATTERN_COUNT;
     const mode = SUB_PATTERN_MODES[activeSection][subPattern];
 
     // Ease every scalar physics global toward the active section's target —

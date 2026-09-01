@@ -5,7 +5,6 @@ import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
 import { CameraRig } from "./CameraRig";
 import { RelationalGraph } from "./RelationalGraph";
-import { DataFragments } from "./DataFragments";
 import { WarpParticles } from "./WarpParticles";
 import { AntigravityParticles } from "./AntigravityParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
@@ -76,7 +75,6 @@ export const Scene = () => {
           maxSize={4}
         />
         <RelationalGraph />
-        <DataFragments />
         {FRAGMENT_HUBS.slice(0, 2).map((hub) => (
           <Sparkles
             key={hub.id}
@@ -90,7 +88,10 @@ export const Scene = () => {
         ))}
         <ambientLight intensity={0.5} />
       </group>
-      <AntigravityParticles />
+      {/* The morphing blue dot field is an "#intro"-only affordance — it must
+          only ever display (and transit between shapes) while intro is the
+          active section, including the very first paint on initial load. */}
+      {activeSection === "intro" && <AntigravityParticles />}
       <WarpParticles />
     </>
   );

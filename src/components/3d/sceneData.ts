@@ -16,7 +16,9 @@ export const SECTION_WAYPOINTS: Record<Section, Waypoint> = {
 
 // Collectible "data fragment" hub anchors — additional 3D-collectible
 // fragments layered on top of the per-section fragments awarded on first
-// visit (see `Overlay.tsx`).
+// visit (see `Overlay.tsx`). Only used as ambient `Sparkles` anchor points
+// now — the collectible octahedron meshes themselves have been removed from
+// the background (see `Scene.tsx`).
 export const FRAGMENT_HUBS: { id: string; position: [number, number, number] }[] = [
   { id: "hub-alpha", position: [0, 1.3, -2] },
   { id: "hub-beta", position: [1.9, -0.9, -2.4] },
@@ -30,5 +32,4 @@ export const ALL_FRAGMENT_IDS: string[] = [
   "fragment-projects",
   "fragment-blogs",
   "terminal-easter-egg",
-  ...FRAGMENT_HUBS.map((hub) => hub.id),
 ];
