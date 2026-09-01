@@ -47,7 +47,7 @@ export const StatusHUD = () => {
           aria-pressed={viewMode === "canvas"}
           className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
         >
-          Toggle Graph View: {viewMode === "canvas" ? "ON" : "OFF"}
+          Graph View: {viewMode === "canvas" ? "CANVAS" : "DOM"}
         </button>
         <button
           type="button"

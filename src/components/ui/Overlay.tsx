@@ -139,7 +139,7 @@ export const Overlay = () => {
                 className={`glass-card flex cursor-pointer flex-col justify-between gap-4 ${
                   viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
                 } ${
-                  (hoveredProject ?? hoveredNode) === proj.id
+                  (hoveredProject ?? (viewMode === "canvas" ? hoveredNode : null)) === proj.id
                     ? `${SECTION_THEME.projects.border} ring-2 ring-amber-400 opacity-100`
                     : ""
                 }`}
@@ -194,7 +194,7 @@ export const Overlay = () => {
                 className={`glass-card flex cursor-pointer flex-col gap-2 ${
                   viewMode === "canvas" ? "pointer-events-none" : "pointer-events-auto"
                 } ${
-                  (hoveredLog ?? hoveredNode) === entry.id
+                  (hoveredLog ?? (viewMode === "canvas" ? hoveredNode : null)) === entry.id
                     ? `${SECTION_THEME.blogs.border} ring-2 ring-amber-400 opacity-100`
                     : ""
                 }`}
