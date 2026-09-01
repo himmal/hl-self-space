@@ -33,7 +33,6 @@ export const CameraRig = () => {
   const lookAtRef = useRef(new THREE.Vector3(0, 0, 0));
   const targetLookAtRef = useRef(new THREE.Vector3(0, 0, 0));
   const hoveredAnchorVecRef = useRef(new THREE.Vector3(0, 0, 0));
-  const hasInitRef = useRef(false);
 
   // Kick off a new curve-based journey whenever the active section changes.
   useEffect(() => {
@@ -53,8 +52,13 @@ export const CameraRig = () => {
     targetFovRef.current = waypoint.fov;
     progressRef.current = 0;
 
-    if (hasInitRef.current) setTransitioning(true);
-    hasInitRef.current = true;
+    // The "hyperspace jump" warp-particle burst (see `WarpParticles`) is an
+    // "#intro"-only affordance: it fires whenever the destination section is
+    // "#intro" — including the very first mount (the default `activeSection`
+    // is "intro", so a first-time visitor sees the same enlarge transition
+    // as when navigating back to intro from elsewhere) — but never when
+    // traveling to "#projects" or "#blogs".
+    if (activeSection === "intro") setTransitioning(true);
   }, [activeSection, camera, setTransitioning]);
 
   useFrame((_, delta) => {

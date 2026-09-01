@@ -88,10 +88,7 @@ export const Scene = () => {
         ))}
         <ambientLight intensity={0.5} />
       </group>
-      {/* The morphing blue dot field is an "#intro"-only affordance — it must
-          only ever display (and transit between shapes) while intro is the
-          active section, including the very first paint on initial load. */}
-      {activeSection === "intro" && <AntigravityParticles />}
+      <AntigravityParticles />
       <WarpParticles />
     </>
   );
