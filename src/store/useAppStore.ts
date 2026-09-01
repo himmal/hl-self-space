@@ -4,9 +4,19 @@ import { persist } from "zustand/middleware";
 export const SECTIONS = ["intro", "projects", "blogs"] as const;
 export type Section = (typeof SECTIONS)[number];
 
+export type ViewMode = "dom" | "canvas";
+
 interface AppState {
   activeSection: Section;
   setActiveSection: (section: Section) => void;
+
+  // Which layer currently owns pointer interactivity — the DOM cards or the
+  // WebGL `RelationalGraph` nodes. Toggled from the floating "Toggle Graph
+  // View" button (see `StatusHUD`); read by `App`'s canvas wrapper and by
+  // `Overlay`'s scrolling card container to swap `pointer-events`/opacity.
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+
   hoveredProject: string | null;
   setHoveredProject: (id: string | null) => void;
 
@@ -43,6 +53,10 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       activeSection: "intro",
       setActiveSection: (section) => set({ activeSection: section }),
+
+      viewMode: "dom",
+      setViewMode: (mode) => set({ viewMode: mode }),
+
       hoveredProject: null,
       setHoveredProject: (id) => set({ hoveredProject: id }),
 
