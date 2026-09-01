@@ -12,16 +12,22 @@ const WARP_DAMP_LAMBDA = 6;
 // Custom warp material: a `uProgress` uniform (0 -> 1) stretches each
 // particle away from the camera along its own random `aStretch` factor,
 // simulating a "hyperspace jump" without mutating buffer geometry per-frame.
+// `gl_PointSize` is clamped to `uMaxSize` — the same fix already applied to
+// `NeuralGrid`/`AntigravityParticles` — since unbounded size-attenuation
+// balloons a particle into an oversized, screen-filling blue "bubble"
+// whenever it passes close to the camera during the transition.
 const WarpMaterialImpl = shaderMaterial(
-  { uProgress: 0, uColor: new THREE.Color("#38bdf8") },
+  { uProgress: 0, uColor: new THREE.Color("#38bdf8"), uMaxSize: 5 },
   /* glsl */ `
     uniform float uProgress;
+    uniform float uMaxSize;
     attribute float aStretch;
     void main() {
       vec3 pos = position;
       pos.z -= aStretch * uProgress * 8.0;
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-      gl_PointSize = mix(2.5, 0.6, uProgress) * (120.0 / -mvPosition.z);
+      float computedSize = mix(2.5, 0.6, uProgress) * (120.0 / -mvPosition.z);
+      gl_PointSize = clamp(computedSize, 0.6, uMaxSize);
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
