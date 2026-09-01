@@ -35,8 +35,11 @@ interface BezierLineMaterial {
 /** Tag-clustered project bubbles for `#projects` — no edges, no squares. */
 const ProjectNodes = () => {
   const hoveredProject = useAppStore((state) => state.hoveredProject);
+  const hoveredNode = useAppStore((state) => state.hoveredNode);
   const setHoveredNode = useAppStore((state) => state.setHoveredNode);
   const materialRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([]);
+
+  const activeId = hoveredProject ?? hoveredNode;
 
   useFrame((_state, delta) => {
     const colorAlpha = 1 - Math.exp(-COLOR_LERP_LAMBDA * delta);
@@ -44,7 +47,7 @@ const ProjectNodes = () => {
     demoData.projects.forEach((project, i) => {
       const material = materialRefs.current[i];
       if (!material) return;
-      const isHovered = hoveredProject === project.id;
+      const isHovered = activeId === project.id;
       material.color.lerp(isHovered ? NODE_HIGHLIGHT_COLOR : NODE_COLOR, colorAlpha);
       material.emissive.lerp(isHovered ? NODE_HIGHLIGHT_COLOR : NODE_COLOR, colorAlpha);
       material.opacity = THREE.MathUtils.lerp(

@@ -38,16 +38,27 @@ export const computeClusterLayout = <T extends GraphSource>(
     return new THREE.Vector3(Math.cos(angle) * spread, Math.sin(angle) * spread * 0.55, depthOffset);
   });
 
+  // `getAttrs`/shared-count/target-distance are all static per pair (the
+  // underlying data never changes), so pre-compute them once instead of
+  // recomputing on every one of the `ITERATIONS` relaxation passes.
+  const attrs = items.map((item) => getAttrs(item));
+  const targetDist: number[][] = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const shared = attrs[i].filter((attr) => attrs[j].includes(attr)).length;
+      const dist = shared > 0 ? Math.max(0.25, (items[i].nodeSize + items[j].nodeSize) / shared) : BASE_SEPARATION;
+      targetDist[i][j] = dist;
+      targetDist[j][i] = dist;
+    }
+  }
+
   for (let iter = 0; iter < ITERATIONS; iter++) {
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
-        const shared = getAttrs(items[i]).filter((attr) => getAttrs(items[j]).includes(attr)).length;
-        const targetDist = shared > 0 ? Math.max(0.25, (items[i].nodeSize + items[j].nodeSize) / shared) : BASE_SEPARATION;
-
         const delta = positions[j].clone().sub(positions[i]);
         const dist = Math.max(0.001, delta.length());
         const dir = delta.multiplyScalar(1 / dist);
-        const correction = (dist - targetDist) * RELAX_STEP;
+        const correction = (dist - targetDist[i][j]) * RELAX_STEP;
 
         positions[i].addScaledVector(dir, correction);
         positions[j].addScaledVector(dir, -correction);
