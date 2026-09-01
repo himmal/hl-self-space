@@ -37,7 +37,7 @@ const WarpMaterialImpl = shaderMaterial(
     void main() {
       float d = length(gl_PointCoord - vec2(0.5));
       if (d > 0.5) discard;
-      gl_FragColor = vec4(uColor, (1.0 - uProgress) * 0.85);
+      gl_FragColor = vec4(uColor, sin(uProgress * 3.14159265) * 0.85);
     }
   `
 );
