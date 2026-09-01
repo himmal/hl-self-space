@@ -18,7 +18,9 @@ const OPACITY_DEFAULT = 0.55;
 const OPACITY_DIMMED = 0.18;
 const OPACITY_HIGHLIGHT = 0.85;
 const SCALE_DEFAULT = 1;
-const SCALE_HIGHLIGHT = 1.35;
+const SCALE_HIGHLIGHT = 1.2;
+const EMISSIVE_DEFAULT = 0.4;
+const EMISSIVE_HIGHLIGHT = 1.1;
 const COLOR_LERP_LAMBDA = 6;
 const OPACITY_LERP_LAMBDA = 6;
 const SCALE_LERP_LAMBDA = 8;
@@ -56,6 +58,11 @@ const ProjectNodes = () => {
       const isHovered = activeId === project.id;
       material.color.lerp(isHovered ? NODE_HIGHLIGHT_COLOR : NODE_COLOR, colorAlpha);
       material.emissive.lerp(isHovered ? NODE_HIGHLIGHT_COLOR : NODE_COLOR, colorAlpha);
+      material.emissiveIntensity = THREE.MathUtils.lerp(
+        material.emissiveIntensity,
+        isHovered ? EMISSIVE_HIGHLIGHT : EMISSIVE_DEFAULT,
+        colorAlpha
+      );
       material.opacity = THREE.MathUtils.lerp(
         material.opacity,
         isHovered ? OPACITY_HIGHLIGHT : OPACITY_DEFAULT,
@@ -91,7 +98,7 @@ const ProjectNodes = () => {
             }}
             color={NODE_COLOR}
             emissive={NODE_COLOR}
-            emissiveIntensity={0.4}
+            emissiveIntensity={EMISSIVE_DEFAULT}
             roughness={0.25}
             metalness={0.1}
             transparent
@@ -138,10 +145,19 @@ const BlogGraph = () => {
       const isRelated = relatedIds ? relatedIds.has(blog.id) : true;
       const isActive = blog.id === activeId;
       const targetColor = isActive ? NODE_HIGHLIGHT_COLOR : NODE_COLOR;
-      const targetOpacity = !relatedIds ? OPACITY_DEFAULT : isRelated ? OPACITY_HIGHLIGHT : OPACITY_DIMMED;
+      const targetOpacity = !relatedIds
+        ? OPACITY_DEFAULT
+        : isRelated
+          ? OPACITY_HIGHLIGHT
+          : OPACITY_DIMMED;
 
       material.color.lerp(targetColor, colorAlpha);
       material.emissive.lerp(targetColor, colorAlpha);
+      material.emissiveIntensity = THREE.MathUtils.lerp(
+        material.emissiveIntensity,
+        isActive ? EMISSIVE_HIGHLIGHT : EMISSIVE_DEFAULT,
+        colorAlpha
+      );
       material.opacity = THREE.MathUtils.lerp(material.opacity, targetOpacity, opacityAlpha);
       const targetScale = isActive ? SCALE_HIGHLIGHT : SCALE_DEFAULT;
       mesh.scale.setScalar(THREE.MathUtils.lerp(mesh.scale.x, targetScale, scaleAlpha));
@@ -173,7 +189,9 @@ const BlogGraph = () => {
           <QuadraticBezierLine
             key={`${edge.a}-${edge.b}`}
             ref={(el: QuadraticBezierLineRef | null) => {
-              edgeMaterialRefs.current[i] = el ? (el.material as unknown as BezierLineMaterial) : null;
+              edgeMaterialRefs.current[i] = el
+                ? (el.material as unknown as BezierLineMaterial)
+                : null;
             }}
             start={start}
             end={end}
@@ -208,7 +226,7 @@ const BlogGraph = () => {
             }}
             color={NODE_COLOR}
             emissive={NODE_COLOR}
-            emissiveIntensity={0.4}
+            emissiveIntensity={EMISSIVE_DEFAULT}
             roughness={0.25}
             metalness={0.1}
             transparent
