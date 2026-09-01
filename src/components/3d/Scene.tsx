@@ -4,7 +4,7 @@ import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
 import { CameraRig } from "./CameraRig";
-import { NeuralLinks } from "./NeuralLinks";
+import { RelationalGraph } from "./RelationalGraph";
 import { DataFragments } from "./DataFragments";
 import { WarpParticles } from "./WarpParticles";
 import { AntigravityParticles } from "./AntigravityParticles";
@@ -75,7 +75,7 @@ export const Scene = () => {
           opacity={0.35}
           maxSize={4}
         />
-        <NeuralLinks />
+        <RelationalGraph />
         <DataFragments />
         {FRAGMENT_HUBS.slice(0, 2).map((hub) => (
           <Sparkles

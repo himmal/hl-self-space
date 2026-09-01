@@ -14,35 +14,6 @@ export const SECTION_WAYPOINTS: Record<Section, Waypoint> = {
   blogs: { position: [-1.4, -0.3, 4.2], lookAt: [-0.6, -0.1, -1], fov: 58 },
 };
 
-// Static anchor points for the "Selected Works" (projects) and "Log" (blog)
-// entries, used by both `NeuralLinks` (connector lines) and the hover
-// magnetism bias in `CameraRig`.
-export const PROJECT_ANCHORS: Record<string, [number, number, number]> = {
-  "proj-1": [2, 0.6, -1],
-  "proj-2": [2.6, -0.5, -1.6],
-};
-
-export const LOG_ANCHORS: Record<string, [number, number, number]> = {
-  "log-1": [-2, 0.5, -1.2],
-  "log-2": [-2.6, -0.4, -1.8],
-};
-
-// Neural Node Links: models relationships between projects and blog log
-// entries, rendered as glowing connector lines in the 3D layer.
-export const NEURAL_LINKS: { projectId: string; logId: string }[] = [
-  { projectId: "proj-1", logId: "log-1" },
-  { projectId: "proj-2", logId: "log-2" },
-];
-
-// Lookup maps derived from `NEURAL_LINKS` for O(1) hover-highlight lookups
-// (avoids re-scanning the links array on every hover event).
-export const PROJECT_TO_LOG: Record<string, string> = Object.fromEntries(
-  NEURAL_LINKS.map((link) => [link.projectId, link.logId])
-);
-export const LOG_TO_PROJECT: Record<string, string> = Object.fromEntries(
-  NEURAL_LINKS.map((link) => [link.logId, link.projectId])
-);
-
 // Collectible "data fragment" hub anchors — additional 3D-collectible
 // fragments layered on top of the per-section fragments awarded on first
 // visit (see `Overlay.tsx`).

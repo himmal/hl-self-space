@@ -4,7 +4,7 @@ import { Terminal, FolderGit2, BookOpen } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./BrandIcons";
 import { useAudioManager } from "../../hooks/useAudioManager";
 import { useActiveSection } from "../../hooks/useActiveSection";
-import { PROJECT_TO_LOG, LOG_TO_PROJECT } from "../3d/sceneData";
+import { demoData } from "../../data/portfolioData";
 
 // Per-section DOM theme: text accent, mirroring the WebGL per-section
 // palette in `AntigravityParticles`/`Scene` (see docs/ARCHITECTURE.md
@@ -36,43 +36,12 @@ const NAV_ITEMS: { id: Section; label: string }[] = [
   { id: "blogs", label: "[03. Blogs]" },
 ];
 
-const PROJECTS = [
-  {
-    id: "proj-1",
-    title: "Project Alpha // Distributed Engine",
-    description: "High-throughput asynchronous task orchestrator built with Go and WebAssembly.",
-    link: "https://github.com",
-    tags: ["Go", "Wasm", "Distributed Systems"],
-  },
-  {
-    id: "proj-2",
-    title: "Neural Vision // Edge AI Pipeline",
-    description: "Low-latency object detection streaming pipeline leveraging TensorRT and WebGL.",
-    link: "https://github.com",
-    tags: ["TypeScript", "C++", "TensorRT"],
-  },
-];
-
-const LOG_ENTRIES = [
-  {
-    id: "log-1",
-    title: "Log // Building the Distributed Engine",
-    excerpt: "Notes on orchestrating asynchronous tasks at scale — the story behind Project Alpha.",
-  },
-  {
-    id: "log-2",
-    title: "Log // Edge AI in the Wild",
-    excerpt:
-      "Lessons from shipping low-latency inference pipelines — the story behind Neural Vision.",
-  },
-];
-
 export const Overlay = () => {
   const activeSection = useAppStore((state) => state.activeSection);
+  const hoveredProject = useAppStore((state) => state.hoveredProject);
   const setHoveredProject = useAppStore((state) => state.setHoveredProject);
+  const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredLog = useAppStore((state) => state.setHoveredLog);
-  const activeLinkId = useAppStore((state) => state.activeLinkId);
-  const setActiveLinkId = useAppStore((state) => state.setActiveLinkId);
   const markSectionVisited = useAppStore((state) => state.markSectionVisited);
   const collectFragment = useAppStore((state) => state.collectFragment);
   const { playSfx } = useAudioManager();
@@ -99,16 +68,6 @@ export const Overlay = () => {
     const timeout = setTimeout(() => setGlitchActive(false), 750);
     return () => clearTimeout(timeout);
   }, [activeSection, markSectionVisited, collectFragment]);
-
-  const handleProjectHover = (id: string | null) => {
-    setHoveredProject(id);
-    setActiveLinkId(id ? (PROJECT_TO_LOG[id] ?? null) : null);
-  };
-
-  const handleLogHover = (id: string | null) => {
-    setHoveredLog(id);
-    setActiveLinkId(id ? (LOG_TO_PROJECT[id] ?? null) : null);
-  };
 
   return (
     <>
@@ -166,14 +125,14 @@ export const Overlay = () => {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {PROJECTS.map((proj) => (
+            {demoData.projects.map((proj) => (
               <div
                 key={proj.id}
                 className={`glass-card pointer-events-auto flex cursor-pointer flex-col justify-between gap-4 ${
-                  activeLinkId === proj.id ? SECTION_THEME.projects.border : ""
+                  hoveredProject === proj.id ? SECTION_THEME.projects.border : ""
                 }`}
-                onMouseEnter={() => handleProjectHover(proj.id)}
-                onMouseLeave={() => handleProjectHover(null)}
+                onMouseEnter={() => setHoveredProject(proj.id)}
+                onMouseLeave={() => setHoveredProject(null)}
               >
                 <div>
                   <h3 className={`mb-2 text-lg font-bold ${SECTION_THEME.projects.text}`}>
@@ -193,7 +152,7 @@ export const Overlay = () => {
                 </div>
 
                 <a
-                  href={proj.link}
+                  href={proj.repoUrl}
                   target="_blank"
                   rel="noreferrer"
                   className={`flex items-center gap-1 self-start text-xs tracking-wider uppercase hover:underline ${SECTION_THEME.projects.text}`}
@@ -217,17 +176,17 @@ export const Overlay = () => {
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {LOG_ENTRIES.map((entry) => (
+            {demoData.blogs.map((entry) => (
               <div
                 key={entry.id}
                 className={`glass-card pointer-events-auto flex cursor-pointer flex-col gap-2 ${
-                  activeLinkId === entry.id ? SECTION_THEME.blogs.border : ""
+                  hoveredLog === entry.id ? SECTION_THEME.blogs.border : ""
                 }`}
-                onMouseEnter={() => handleLogHover(entry.id)}
-                onMouseLeave={() => handleLogHover(null)}
+                onMouseEnter={() => setHoveredLog(entry.id)}
+                onMouseLeave={() => setHoveredLog(null)}
               >
                 <h3 className={`text-lg font-bold ${SECTION_THEME.blogs.text}`}>{entry.title}</h3>
-                <p className="text-sm text-gray-300">{entry.excerpt}</p>
+                <p className="text-sm text-gray-300">{entry.description}</p>
               </div>
             ))}
           </div>

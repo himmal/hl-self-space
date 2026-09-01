@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAppStore } from "../../store/useAppStore";
-import { SECTION_WAYPOINTS, PROJECT_ANCHORS, LOG_ANCHORS } from "./sceneData";
+import { SECTION_WAYPOINTS } from "./sceneData";
+import { PROJECT_POSITIONS, BLOG_POSITIONS } from "./graphNodes";
 
 // Total travel time (seconds) for a section-to-section camera journey.
 const TRAVEL_DURATION = 1.1;
@@ -72,11 +73,11 @@ export const CameraRig = () => {
     }
 
     // Reactive hover magnetism: bias the lookAt target slightly toward the
-    // hovered project/log anchor point in 3D space.
+    // hovered project/blog node's position in 3D space.
     const hoveredAnchor =
-      (hoveredProject && PROJECT_ANCHORS[hoveredProject]) ||
-      (hoveredNode && PROJECT_ANCHORS[hoveredNode]) ||
-      (hoveredLog && LOG_ANCHORS[hoveredLog]) ||
+      (hoveredProject && PROJECT_POSITIONS[hoveredProject]) ||
+      (hoveredNode && (PROJECT_POSITIONS[hoveredNode] || BLOG_POSITIONS[hoveredNode])) ||
+      (hoveredLog && BLOG_POSITIONS[hoveredLog]) ||
       null;
 
     const targetLookAt = targetLookAtRef.current.copy(baseLookAtRef.current);

@@ -17,15 +17,9 @@ interface AppState {
   setHoveredNode: (id: string | null) => void;
 
   // UI-side hover state for blog "log entry" cards — the 3D-side
-  // counterpart to `hoveredProject`, used by `NeuralLinks`/`CameraRig`.
+  // counterpart to `hoveredProject`, used by `RelationalGraph`/`CameraRig`.
   hoveredLog: string | null;
   setHoveredLog: (id: string | null) => void;
-
-  // Shared "Neural Node Link" highlight id — set when hovering a project or
-  // log entry to its linked counterpart id, read by `NeuralLinks` (3D) and
-  // `Overlay` (UI) to highlight both ends of the connection together.
-  activeLinkId: string | null;
-  setActiveLinkId: (id: string | null) => void;
 
   // Drives particle warp / transition shader uniforms on section change.
   isTransitioning: boolean;
@@ -57,9 +51,6 @@ export const useAppStore = create<AppState>()(
 
       hoveredLog: null,
       setHoveredLog: (id) => set({ hoveredLog: id }),
-
-      activeLinkId: null,
-      setActiveLinkId: (id) => set({ activeLinkId: id }),
 
       isTransitioning: false,
       setTransitioning: (v) => set({ isTransitioning: v }),

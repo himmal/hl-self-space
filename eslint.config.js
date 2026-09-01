@@ -52,6 +52,8 @@ export default tseslint.config(
             "emissiveIntensity",
             "frustumCulled",
             "intensity",
+            "roughness",
+            "metalness",
             "transparent",
             "vertexColors",
             "sizeAttenuation",
