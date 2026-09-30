@@ -1,6 +1,7 @@
 import { Billboard, Line, Text } from "@react-three/drei";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { type ThreeEvent, useThree } from "@react-three/fiber";
+import * as THREE from "three";
 import { type BlogItem, type ProjectItem } from "../../data/portfolioData";
 import { useAppStore } from "../../store/useAppStore";
 import { computeRadialTreeLayout, type RadialTreeLayout } from "./graphLayout";
@@ -111,6 +112,7 @@ export interface RelationalGraphProps {
 export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   const viewMode = useAppStore((state) => state.viewMode);
   const { viewport } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
   const tree = useMemo(
     () =>
       computeRadialTreeLayout(data, (item) =>
@@ -120,8 +122,12 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   );
   const scale = Math.min(1, viewport.width / 20);
 
+  useEffect(() => {
+    if (groupRef.current) groupRef.current.visible = viewMode !== "particles";
+  }, [viewMode]);
+
   return (
-    <group visible={viewMode !== "particles"} scale={scale}>
+    <group ref={groupRef} scale={scale}>
       <Mindmap
         items={data}
         tree={tree}
