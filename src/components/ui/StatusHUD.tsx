@@ -16,6 +16,7 @@ export const StatusHUD = () => {
   const toggleAudio = useAppStore((state) => state.toggleAudio);
   const viewMode = useAppStore((state) => state.viewMode);
   const setViewMode = useAppStore((state) => state.setViewMode);
+  const nextViewMode = viewMode === "dom" ? "graph" : viewMode === "graph" ? "particles" : "dom";
 
   // Clamp defensively: `collectedFragments` is persisted to localStorage, so
   // ids collected under a previous build (e.g. before a fragment was
@@ -43,11 +44,11 @@ export const StatusHUD = () => {
       <div className="mt-1 flex gap-1">
         <button
           type="button"
-          onClick={() => setViewMode(viewMode === "dom" ? "canvas" : "dom")}
-          aria-pressed={viewMode === "canvas"}
+          onClick={() => setViewMode(nextViewMode)}
+          aria-pressed={viewMode === "graph"}
           className="cursor-pointer self-start border border-[var(--color-border)] px-2 py-0.5 opacity-70 transition-opacity hover:opacity-100"
         >
-          Graph View: {viewMode === "canvas" ? "CANVAS" : "DOM"}
+          View: {viewMode.toUpperCase()}
         </button>
         <button
           type="button"

@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 export const SECTIONS = ["intro", "projects", "blogs"] as const;
 export type Section = (typeof SECTIONS)[number];
 
-export type ViewMode = "dom" | "canvas";
+export type ViewMode = "dom" | "graph" | "particles";
 
 interface AppState {
   activeSection: Section;
@@ -16,6 +16,8 @@ interface AppState {
   // `Overlay`'s scrolling card container to swap `pointer-events`/opacity.
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  hoveredItemId: string | null;
+  setHoveredItemId: (id: string | null) => void;
 
   hoveredProject: string | null;
   setHoveredProject: (id: string | null) => void;
@@ -56,12 +58,14 @@ export const useAppStore = create<AppState>()(
 
       viewMode: "dom",
       setViewMode: (mode) => set({ viewMode: mode }),
+      hoveredItemId: null,
+      setHoveredItemId: (id) => set({ hoveredItemId: id, hoveredNode: id }),
 
       hoveredProject: null,
       setHoveredProject: (id) => set({ hoveredProject: id }),
 
       hoveredNode: null,
-      setHoveredNode: (id) => set({ hoveredNode: id }),
+      setHoveredNode: (id) => set({ hoveredNode: id, hoveredItemId: id }),
 
       hoveredLog: null,
       setHoveredLog: (id) => set({ hoveredLog: id }),

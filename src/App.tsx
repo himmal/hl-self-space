@@ -22,8 +22,8 @@ const NeuralGridExperience = () => {
       <div
         className="canvas-layer"
         style={{
-          zIndex: viewMode === "canvas" ? 50 : -10,
-          pointerEvents: viewMode === "canvas" ? "auto" : "none",
+          zIndex: viewMode === "graph" ? 50 : -10,
+          pointerEvents: viewMode === "graph" ? "auto" : "none",
         }}
       >
         <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true, alpha: true }}>
