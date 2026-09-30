@@ -25,8 +25,7 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredItemId = useAppStore((state) => state.setHoveredItemId);
-  const activeHoveredId =
-    viewMode === "graph" ? hoveredItemId : (hoveredProject ?? hoveredLog);
+  const activeHoveredId = viewMode === "graph" ? hoveredItemId : (hoveredProject ?? hoveredLog);
   const isHovered = activeHoveredId === id;
   const hasHoveredNode = activeHoveredId !== null;
 
@@ -35,26 +34,13 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
     const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.9 : 1;
     const targetOpacity =
       viewMode === "graph" ? (isHovered ? 1 : hasHoveredNode ? 0.5 : 0.9) : isHovered ? 0.9 : 0.25;
-    nodeRef.current.scale.x = THREE.MathUtils.damp(
-      nodeRef.current.scale.x,
-      targetScale,
-      8,
-      delta
-    );
-    nodeRef.current.scale.y = THREE.MathUtils.damp(
-      nodeRef.current.scale.y,
-      targetScale,
-      8,
-      delta
-    );
-    nodeRef.current.scale.z = THREE.MathUtils.damp(
-      nodeRef.current.scale.z,
-      targetScale,
-      8,
-      delta
-    );
-    const material = textRef.current?.material as THREE.Material & { opacity: number } | undefined;
-    if (material) material.opacity = THREE.MathUtils.damp(material.opacity, targetOpacity, 8, delta);
+    nodeRef.current.scale.x = THREE.MathUtils.damp(nodeRef.current.scale.x, targetScale, 8, delta);
+    nodeRef.current.scale.y = THREE.MathUtils.damp(nodeRef.current.scale.y, targetScale, 8, delta);
+    nodeRef.current.scale.z = THREE.MathUtils.damp(nodeRef.current.scale.z, targetScale, 8, delta);
+    const material = textRef.current?.material as
+      (THREE.Material & { opacity: number }) | undefined;
+    if (material)
+      material.opacity = THREE.MathUtils.damp(material.opacity, targetOpacity, 8, delta);
   });
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
@@ -108,7 +94,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
 }: MindmapProps<T>) => {
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const pointsFor = (id: string): [number, number, number] =>
-    id === "__root__" ? tree.root : tree.tags[id] ?? tree.items[id];
+    id === "__root__" ? tree.root : (tree.tags[id] ?? tree.items[id]);
 
   return (
     <group>
@@ -154,9 +140,12 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   const layoutScale = Math.max(1, Math.min(viewport.width / 4, viewport.height / 3));
   const tree = useMemo(
     () =>
-      computeRadialTreeLayout(data, (item) =>
-        "tags" in item ? item.tags : item.keywords
-      , 2.4 * layoutScale, 4.8 * layoutScale),
+      computeRadialTreeLayout(
+        data,
+        (item) => ("tags" in item ? item.tags : item.keywords),
+        2.4 * layoutScale,
+        4.8 * layoutScale
+      ),
     [data, layoutScale]
   );
 
@@ -166,12 +155,7 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
 
   return (
     <group ref={groupRef}>
-      <Mindmap
-        items={data}
-        tree={tree}
-        rootLabel={rootLabel}
-        interactive={viewMode === "graph"}
-      />
+      <Mindmap items={data} tree={tree} rootLabel={rootLabel} interactive={viewMode === "graph"} />
     </group>
   );
 };

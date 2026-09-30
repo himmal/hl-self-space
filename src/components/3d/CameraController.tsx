@@ -29,25 +29,13 @@ export const CameraController = () => {
   }, [activeSection, layoutScale]);
 
   useFrame((_, delta) => {
-    const selectedId =
-      viewMode === "dom" ? (hoveredProject ?? hoveredLog) : hoveredItemId;
-    const selectedPosition =
-      viewMode === "dom" && selectedId ? tree.items[selectedId] : undefined;
+    const selectedId = viewMode === "dom" ? (hoveredProject ?? hoveredLog) : hoveredItemId;
+    const selectedPosition = viewMode === "dom" && selectedId ? tree.items[selectedId] : undefined;
     const targetX = (selectedPosition?.[0] ?? 0) + pointer.x * PARALLAX_DISTANCE;
     const targetY = (selectedPosition?.[1] ?? 0) + pointer.y * PARALLAX_DISTANCE;
     camera.position.z = THREE.MathUtils.damp(camera.position.z, CAMERA_Z, 6, delta);
-    camera.position.x = THREE.MathUtils.damp(
-      camera.position.x,
-      targetX,
-      6,
-      delta
-    );
-    camera.position.y = THREE.MathUtils.damp(
-      camera.position.y,
-      targetY,
-      6,
-      delta
-    );
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 6, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 6, delta);
   });
 
   return null;
