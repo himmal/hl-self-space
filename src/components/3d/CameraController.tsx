@@ -7,7 +7,8 @@ import { BLOG_POSITIONS, PROJECT_POSITIONS } from "./graphNodes";
 
 const BASE_Z = 5;
 const PARALLAX_DISTANCE = 2;
-const FOCUS_DISTANCE = 2.8;
+const FOCUS_DISTANCE = 10;
+const FOCUSED_PARALLAX_DISTANCE = 0.5;
 
 export const CameraController = () => {
   const { camera } = useThree();
@@ -16,9 +17,10 @@ export const CameraController = () => {
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
-  const lookAtRef = useRef(new THREE.Vector3());
   const targetLookAtRef = useRef(new THREE.Vector3());
   const targetPositionRef = useRef(new THREE.Vector3());
+  const targetQuaternionRef = useRef(new THREE.Quaternion());
+  const currentQuaternionRef = useRef(new THREE.Quaternion());
 
   useFrame((_, delta) => {
     const projectPosition = hoveredProject ? PROJECT_POSITIONS[hoveredProject] : undefined;
@@ -33,8 +35,9 @@ export const CameraController = () => {
       focusedPosition?.[1] ?? 0,
       (focusedPosition?.[2] ?? BASE_Z) + (focusedPosition ? FOCUS_DISTANCE : 0)
     );
-    targetPositionRef.current.x += pointer.x * PARALLAX_DISTANCE;
-    targetPositionRef.current.y += pointer.y * PARALLAX_DISTANCE;
+    const parallaxDistance = focusedPosition ? FOCUSED_PARALLAX_DISTANCE : PARALLAX_DISTANCE;
+    targetPositionRef.current.x += pointer.x * parallaxDistance;
+    targetPositionRef.current.y += pointer.y * parallaxDistance;
 
     targetLookAtRef.current.set(
       focusedPosition?.[0] ?? 0,
@@ -42,10 +45,13 @@ export const CameraController = () => {
       focusedPosition?.[2] ?? 0
     );
 
-    const damping = 1 - Math.exp(-6 * delta);
-    camera.position.lerp(targetPositionRef.current, damping);
-    lookAtRef.current.lerp(targetLookAtRef.current, damping);
-    camera.lookAt(lookAtRef.current);
+    camera.position.lerp(targetPositionRef.current, 1 - Math.exp(-6 * delta));
+
+    currentQuaternionRef.current.copy(camera.quaternion);
+    camera.lookAt(targetLookAtRef.current);
+    targetQuaternionRef.current.copy(camera.quaternion);
+    camera.quaternion.copy(currentQuaternionRef.current);
+    camera.quaternion.slerp(targetQuaternionRef.current, 1 - Math.exp(-8 * delta));
   });
 
   return null;
