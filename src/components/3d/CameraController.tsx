@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { demoData } from "../../data/portfolioData";
 import { useGlobalPointer } from "../../hooks/useGlobalPointer";
 import { useAppStore } from "../../store/useAppStore";
-import { computeRadialTreeLayout } from "./graphLayout";
+import { computeRadialTreeLayout, getRadialTreeFitScale } from "./graphLayout";
 
 const CAMERA_Z = 15;
 const PARALLAX_DISTANCE = 0.5;
@@ -13,29 +13,31 @@ export const CameraController = () => {
   const { camera, viewport } = useThree();
   const pointer = useGlobalPointer();
   const viewMode = useAppStore((state) => state.viewMode);
-  const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const activeSection = useAppStore((state) => state.activeSection);
-  const layoutScale = Math.max(1, Math.min(viewport.width / 4, viewport.height / 3));
   const tree = useMemo(() => {
     const data = activeSection === "projects" ? demoData.projects : demoData.blogs;
     return computeRadialTreeLayout(
       data,
       (item) => ("tags" in item ? item.tags : item.keywords),
-      2.4 * layoutScale,
-      4.8 * layoutScale
+      2.4,
+      4.8
     );
-  }, [activeSection, layoutScale]);
+  }, [activeSection]);
+  const fitScale = getRadialTreeFitScale(tree, viewport.width, viewport.height);
 
   useFrame((_, delta) => {
-    const selectedId = viewMode === "dom" ? (hoveredProject ?? hoveredLog) : hoveredItemId;
-    const selectedPosition = viewMode === "dom" && selectedId ? tree.items[selectedId] : undefined;
-    const targetX = (selectedPosition?.[0] ?? 0) + pointer.x * PARALLAX_DISTANCE;
-    const targetY = (selectedPosition?.[1] ?? 0) + pointer.y * PARALLAX_DISTANCE;
+    const selectedId = viewMode === "dom" ? (hoveredProject ?? hoveredLog) : null;
+    const selectedPosition = selectedId ? tree.items[selectedId] : undefined;
+    const targetX =
+      (selectedPosition?.[0] ?? 0) * fitScale + pointer.x * PARALLAX_DISTANCE;
+    const targetY =
+      (selectedPosition?.[1] ?? 0) * fitScale + pointer.y * PARALLAX_DISTANCE;
     camera.position.z = THREE.MathUtils.damp(camera.position.z, CAMERA_Z, 6, delta);
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 6, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 6, delta);
+    camera.lookAt(0, 0, 0);
   });
 
   return null;

@@ -102,6 +102,23 @@ export interface RadialTreeLayout {
   branches: { parent: string; child: string }[];
 }
 
+/**
+ * Fits the radial layout inside the perspective camera's visible rectangle.
+ * The extra bounds account for the widest wrapped label, while the 90% factor
+ * leaves a consistent viewport margin on every aspect ratio.
+ */
+export const getRadialTreeFitScale = (
+  tree: RadialTreeLayout,
+  viewportWidth: number,
+  viewportHeight: number
+) => {
+  const positions = [tree.root, ...Object.values(tree.tags), ...Object.values(tree.items)];
+  const maxX = Math.max(...positions.map(([x]) => Math.abs(x)), 0) + 1.1;
+  const maxY = Math.max(...positions.map(([, y]) => Math.abs(y)), 0) + 1;
+
+  return Math.min(1, (viewportWidth * 0.9) / (maxX * 2), (viewportHeight * 0.9) / (maxY * 2));
+};
+
 const stableDepth = (id: string) => {
   let hash = 0;
   for (const character of id) hash = (hash * 31 + character.charCodeAt(0)) | 0;
