@@ -17,9 +17,17 @@ interface GraphTextNodeProps {
   position: [number, number, number];
   interactive?: boolean;
   fontSize: number;
+  maxWidth: number;
 }
 
-const GraphTextNode = ({ id, label, position, interactive = false, fontSize }: GraphTextNodeProps) => {
+const GraphTextNode = ({
+  id,
+  label,
+  position,
+  interactive = false,
+  fontSize,
+  maxWidth,
+}: GraphTextNodeProps) => {
   const nodeRef = useRef<THREE.Group>(null);
   const textRef = useRef<THREE.Mesh>(null);
   const viewMode = useAppStore((state) => state.viewMode);
@@ -35,7 +43,7 @@ const GraphTextNode = ({ id, label, position, interactive = false, fontSize }: G
     if (!nodeRef.current) return;
     const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.9 : 1;
     const targetOpacity =
-      viewMode === "graph" ? (isHovered ? 1 : hasHoveredNode ? 0.5 : 0.9) : isHovered ? 0.9 : 0.25;
+      viewMode === "graph" ? (isHovered ? 1 : hasHoveredNode ? 0.4 : 1) : isHovered ? 0.3 : 0.2;
     nodeRef.current.scale.x = THREE.MathUtils.damp(nodeRef.current.scale.x, targetScale, 8, delta);
     nodeRef.current.scale.y = THREE.MathUtils.damp(nodeRef.current.scale.y, targetScale, 8, delta);
     nodeRef.current.scale.z = THREE.MathUtils.damp(nodeRef.current.scale.z, targetScale, 8, delta);
@@ -64,13 +72,22 @@ const GraphTextNode = ({ id, label, position, interactive = false, fontSize }: G
       <group ref={nodeRef}>
         <Text
           ref={textRef}
-          color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
+          color={
+            viewMode === "graph"
+              ? isHovered
+                ? HOVER_COLOR
+                : "#ffffff"
+              : interactive
+                ? DEFAULT_COLOR
+                : TAG_COLOR
+          }
           fillOpacity={1}
           fontSize={fontSize}
           anchorX="center"
           anchorY="middle"
-          maxWidth={2.2}
+          maxWidth={maxWidth}
           textAlign="center"
+          lineHeight={1.15}
           onPointerOver={handlePointerOver}
           onPointerOut={handlePointerOut}
         >
@@ -87,6 +104,7 @@ interface MindmapProps<T extends ProjectItem | BlogItem> {
   rootLabel: string;
   interactive: boolean;
   fontSize: number;
+  maxWidth: number;
 }
 
 const Mindmap = <T extends ProjectItem | BlogItem>({
@@ -95,6 +113,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
   rootLabel,
   interactive,
   fontSize,
+  maxWidth,
 }: MindmapProps<T>) => {
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const pointsFor = (id: string): [number, number, number] =>
@@ -102,9 +121,22 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
 
   return (
     <group>
-      <GraphTextNode id="__root__" label={rootLabel} position={tree.root} fontSize={fontSize} />
+      <GraphTextNode
+        id="__root__"
+        label={rootLabel}
+        position={tree.root}
+        fontSize={fontSize}
+        maxWidth={maxWidth}
+      />
       {Object.entries(tree.tags).map(([tag, position]) => (
-        <GraphTextNode key={tag} id={tag} label={tag} position={position} fontSize={fontSize} />
+        <GraphTextNode
+          key={tag}
+          id={tag}
+          label={tag}
+          position={position}
+          fontSize={fontSize}
+          maxWidth={maxWidth}
+        />
       ))}
       {items.map((item) => (
         <GraphTextNode
@@ -114,6 +146,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
           position={tree.items[item.id]}
           interactive={interactive}
           fontSize={fontSize}
+          maxWidth={maxWidth}
         />
       ))}
       {tree.branches.map(({ parent, child }) => {
@@ -155,6 +188,9 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   // Frustum fitting scales the stable layout against the live R3F viewport,
   // rather than changing its radii with viewport-specific magic numbers.
   const fitScale = getRadialTreeFitScale(tree, viewport.width, viewport.height);
+  // Text is measured before the parent fit scale is applied, so compensate
+  // for that scale while keeping the rendered wrap width tied to the viewport.
+  const textMaxWidth = Math.max(0.8, viewport.width / 5 / fitScale);
 
   useEffect(() => {
     if (groupRef.current) groupRef.current.visible = viewMode !== "particles";
@@ -169,6 +205,7 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
           rootLabel={rootLabel}
           interactive={viewMode === "graph"}
           fontSize={BASE_TEXT_SIZE / fitScale}
+          maxWidth={textMaxWidth}
         />
       </group>
     </group>

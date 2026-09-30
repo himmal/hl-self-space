@@ -116,7 +116,7 @@ export const Overlay = () => {
         className="ui-layer pt-24 transition-all duration-300 ease-in-out"
         style={{
           zIndex: viewMode === "graph" ? 10 : 50,
-          opacity: viewMode === "graph" ? 0.3 : viewMode === "particles" ? 0 : 1,
+          opacity: viewMode === "particles" ? 0 : 1,
           pointerEvents: viewMode === "graph" || viewMode === "particles" ? "none" : "auto",
         }}
       >

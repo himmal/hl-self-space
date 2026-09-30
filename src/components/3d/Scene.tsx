@@ -25,6 +25,7 @@ const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: s
 export const Scene = () => {
   const fogRef = useRef<THREE.FogExp2>(null);
   const activeSection = useAppStore((state) => state.activeSection);
+  const viewMode = useAppStore((state) => state.viewMode);
   const palette = useMemo(
     () => SECTION_PALETTES[activeSection] ?? SECTION_PALETTES.intro,
     [activeSection]
@@ -42,7 +43,9 @@ export const Scene = () => {
   return (
     <>
       <CameraController />
-      <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
+      {viewMode !== "graph" && (
+        <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
+      )}
       <group>
         <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} maxSize={5} />
         {/* Sparser, slower-rotating parallax layer for extra depth at near-zero cost */}
