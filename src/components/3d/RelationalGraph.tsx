@@ -38,12 +38,12 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
     <Billboard position={position}>
       <Text
         color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
-        fontSize={isHovered ? 0.34 : interactive ? 0.25 : 0.32}
+        fontSize={isHovered ? 0.3 : interactive ? 0.2 : 0.24}
         anchorX="center"
         anchorY="middle"
-        maxWidth={2.8}
+        maxWidth={2.2}
         textAlign="center"
-        scale={isHovered ? 1.2 : 1}
+        scale={isHovered ? 1.35 : 1}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >

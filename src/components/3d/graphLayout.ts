@@ -116,8 +116,8 @@ const stableDepth = (id: string) => {
 export const computeRadialTreeLayout = <T extends GraphSource>(
   items: T[],
   getAttrs: (item: T) => string[],
-  tagRadius = 8,
-  itemRadius = 16
+  tagRadius = 2.4,
+  itemRadius = 4.8
 ): RadialTreeLayout => {
   const itemTags: Record<string, string> = {};
   const tags = Array.from(
@@ -150,7 +150,7 @@ export const computeRadialTreeLayout = <T extends GraphSource>(
       itemPositions[item.id] = [
         Math.cos(angle) * itemRadius,
         Math.sin(angle) * itemRadius * 0.72,
-        stableDepth(item.id),
+        stableDepth(item.id) * 0.25,
       ];
     });
   });
