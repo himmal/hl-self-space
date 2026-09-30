@@ -19,7 +19,13 @@ const NeuralGridExperience = () => {
           overlay underneath; in `"canvas"` view mode the Tailwind utility
           below (higher-specificity `@layer utilities`) re-enables pointer
           events so the `RelationalGraph` nodes can be hovered/raycast. */}
-      <div className={`canvas-layer ${viewMode === "canvas" ? "pointer-events-auto" : ""}`}>
+      <div
+        className="canvas-layer"
+        style={{
+          zIndex: viewMode === "canvas" ? 50 : -10,
+          pointerEvents: viewMode === "canvas" ? "auto" : "none",
+        }}
+      >
         <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true, alpha: true }}>
           <Scene />
         </Canvas>

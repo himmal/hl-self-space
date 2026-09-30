@@ -89,7 +89,7 @@ export const Overlay = () => {
   return (
     <>
       {/* Sticky, frosted-glass scroll-spy navbar (docs/ARCHITECTURE.md §7) */}
-      <header className="fixed top-0 z-20 flex w-full items-center justify-between border-b border-[var(--color-border)] bg-black/80 px-[10vw] py-4 backdrop-blur-md">
+      <header className="fixed top-0 z-[100] flex w-full items-center justify-between border-b border-[var(--color-border)] bg-black/80 px-[10vw] py-4 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Terminal className="h-6 w-6 text-[var(--color-accent)]" />
           <span className="text-lg font-bold tracking-widest">HIM.DEV // LOG</span>
@@ -113,11 +113,12 @@ export const Overlay = () => {
       </header>
 
       <main
-        className={`ui-layer pt-24 transition-all duration-300 ease-in-out ${
-          viewMode === "canvas"
-            ? "pointer-events-none opacity-50 grayscale-[50%]"
-            : "pointer-events-auto opacity-100 grayscale-0"
-        }`}
+        className="ui-layer pt-24 transition-all duration-300 ease-in-out"
+        style={{
+          zIndex: viewMode === "canvas" ? 10 : 50,
+          opacity: viewMode === "canvas" ? 0.3 : 1,
+          pointerEvents: viewMode === "canvas" ? "none" : "auto",
+        }}
       >
         {/* Intro Section */}
         <section
