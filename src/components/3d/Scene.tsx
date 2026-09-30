@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
@@ -9,6 +9,7 @@ import { WarpParticles } from "./WarpParticles";
 import { AntigravityParticles } from "./AntigravityParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
+import { demoData } from "../../data/portfolioData";
 
 // Section-themed grid palettes — a single muted slate/accent scheme shared
 // across all sections (see docs/ARCHITECTURE.md §5.2) so switching sections
@@ -55,7 +56,14 @@ export const Scene = () => {
           opacity={0.35}
           maxSize={4}
         />
-        <RelationalGraph />
+        <Suspense fallback={null}>
+          {activeSection === "projects" && (
+            <RelationalGraph data={demoData.projects} rootLabel="Projects" />
+          )}
+          {activeSection === "blogs" && (
+            <RelationalGraph data={demoData.blogs} rootLabel="Blogs" />
+          )}
+        </Suspense>
         {FRAGMENT_HUBS.slice(0, 2).map((hub) => (
           <Sparkles
             key={hub.id}

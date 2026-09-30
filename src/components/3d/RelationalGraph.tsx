@@ -1,8 +1,10 @@
 import { Billboard, Line, Text } from "@react-three/drei";
-import { type ThreeEvent } from "@react-three/fiber";
-import { demoData, type BlogItem, type ProjectItem } from "../../data/portfolioData";
+import { useEffect, useMemo, useRef } from "react";
+import { type ThreeEvent, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import { type BlogItem, type ProjectItem } from "../../data/portfolioData";
 import { useAppStore } from "../../store/useAppStore";
-import { BLOG_TREE, PROJECT_TREE } from "./graphNodes";
+import { computeRadialTreeLayout, type RadialTreeLayout } from "./graphLayout";
 
 const DEFAULT_COLOR = "#38bdf8";
 const TAG_COLOR = "#94a3b8";
@@ -55,11 +57,17 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
 
 interface MindmapProps<T extends ProjectItem | BlogItem> {
   items: T[];
-  tree: typeof PROJECT_TREE;
+  tree: RadialTreeLayout;
   rootLabel: string;
+  interactive: boolean;
 }
 
-const Mindmap = <T extends ProjectItem | BlogItem>({ items, tree, rootLabel }: MindmapProps<T>) => {
+const Mindmap = <T extends ProjectItem | BlogItem>({
+  items,
+  tree,
+  rootLabel,
+  interactive,
+}: MindmapProps<T>) => {
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const pointsFor = (id: string): [number, number, number] =>
     id === "__root__" ? tree.root : tree.tags[id] ?? tree.items[id];
@@ -76,7 +84,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({ items, tree, rootLabel }: M
           id={item.id}
           label={item.title || item.id}
           position={tree.items[item.id]}
-          interactive
+          interactive={interactive}
         />
       ))}
       {tree.branches.map(({ parent, child }) => {
@@ -96,21 +104,35 @@ const Mindmap = <T extends ProjectItem | BlogItem>({ items, tree, rootLabel }: M
   );
 };
 
-export const RelationalGraph = () => {
-  const activeSection = useAppStore((state) => state.activeSection);
+export interface RelationalGraphProps {
+  data: Array<ProjectItem | BlogItem>;
+  rootLabel: string;
+}
+
+export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   const viewMode = useAppStore((state) => state.viewMode);
+  const { viewport } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+  const tree = useMemo(
+    () =>
+      computeRadialTreeLayout(data, (item) =>
+        "tags" in item ? item.tags : item.keywords
+      ),
+    [data]
+  );
+  const scale = Math.min(1, viewport.width / 20);
 
-  if (activeSection === "intro") return null;
-
-  const isProjects = activeSection === "projects";
-  if (viewMode !== "graph") return null;
+  useEffect(() => {
+    if (groupRef.current) groupRef.current.visible = viewMode !== "particles";
+  }, [viewMode]);
 
   return (
-    <group>
+    <group ref={groupRef} scale={scale}>
       <Mindmap
-        items={isProjects ? demoData.projects : demoData.blogs}
-        tree={isProjects ? PROJECT_TREE : BLOG_TREE}
-        rootLabel={isProjects ? "Projects" : "Blogs"}
+        items={data}
+        tree={tree}
+        rootLabel={rootLabel}
+        interactive={viewMode === "graph"}
       />
     </group>
   );
