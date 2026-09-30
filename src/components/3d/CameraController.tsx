@@ -13,7 +13,6 @@ export const CameraController = () => {
   const { camera, viewport } = useThree();
   const pointer = useGlobalPointer();
   const viewMode = useAppStore((state) => state.viewMode);
-  const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const activeSection = useAppStore((state) => state.activeSection);
