@@ -12,6 +12,7 @@ const FOCUS_DISTANCE = 2.8;
 export const CameraController = () => {
   const { camera } = useThree();
   const pointer = useGlobalPointer();
+  const viewMode = useAppStore((state) => state.viewMode);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
@@ -24,7 +25,8 @@ export const CameraController = () => {
     const blogPosition = hoveredLog ? BLOG_POSITIONS[hoveredLog] : undefined;
     const graphPosition =
       hoveredItemId && (PROJECT_POSITIONS[hoveredItemId] || BLOG_POSITIONS[hoveredItemId]);
-    const focusedPosition = projectPosition || blogPosition || graphPosition;
+    const focusedPosition =
+      viewMode === "particles" ? undefined : projectPosition || blogPosition || graphPosition;
 
     targetPositionRef.current.set(
       focusedPosition?.[0] ?? 0,
