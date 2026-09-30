@@ -32,9 +32,24 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
   useFrame((_, delta) => {
     if (!nodeRef.current) return;
     const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.8 : 1;
-    nodeRef.current.scale.x = THREE.MathUtils.damp(nodeRef.current.scale.x, targetScale, 8, delta);
-    nodeRef.current.scale.y = THREE.MathUtils.damp(nodeRef.current.scale.y, targetScale, 8, delta);
-    nodeRef.current.scale.z = THREE.MathUtils.damp(nodeRef.current.scale.z, targetScale, 8, delta);
+    nodeRef.current.scale.x = THREE.MathUtils.damp(
+      nodeRef.current.scale.x,
+      targetScale,
+      8,
+      delta
+    );
+    nodeRef.current.scale.y = THREE.MathUtils.damp(
+      nodeRef.current.scale.y,
+      targetScale,
+      8,
+      delta
+    );
+    nodeRef.current.scale.z = THREE.MathUtils.damp(
+      nodeRef.current.scale.z,
+      targetScale,
+      8,
+      delta
+    );
   });
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {

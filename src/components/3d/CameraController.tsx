@@ -11,8 +11,18 @@ export const CameraController = () => {
 
   useFrame((_, delta) => {
     camera.position.z = CAMERA_Z;
-    THREE.MathUtils.damp(camera.position.x, pointer.x * PARALLAX_DISTANCE, 4, delta);
-    THREE.MathUtils.damp(camera.position.y, pointer.y * PARALLAX_DISTANCE, 4, delta);
+    camera.position.x = THREE.MathUtils.damp(
+      camera.position.x,
+      pointer.x * PARALLAX_DISTANCE,
+      4,
+      delta
+    );
+    camera.position.y = THREE.MathUtils.damp(
+      camera.position.y,
+      pointer.y * PARALLAX_DISTANCE,
+      4,
+      delta
+    );
   });
 
   return null;
