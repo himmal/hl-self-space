@@ -26,7 +26,7 @@ const NeuralGridExperience = () => {
           pointerEvents: viewMode === "graph" ? "auto" : "none",
         }}
       >
-        <Canvas camera={{ position: [0, 0, 5], fov: 60 }} gl={{ antialias: true, alpha: true }}>
+        <Canvas camera={{ position: [0, 0, 15], fov: 60 }} gl={{ antialias: true, alpha: true }}>
           <Scene />
         </Canvas>
       </div>

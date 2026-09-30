@@ -1,6 +1,6 @@
 import { Billboard, Line, Text } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
-import { type ThreeEvent, useThree } from "@react-three/fiber";
+import { type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { type BlogItem, type ProjectItem } from "../../data/portfolioData";
 import { useAppStore } from "../../store/useAppStore";
@@ -18,9 +18,24 @@ interface GraphTextNodeProps {
 }
 
 const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNodeProps) => {
+  const nodeRef = useRef<THREE.Group>(null);
+  const viewMode = useAppStore((state) => state.viewMode);
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
+  const hoveredProject = useAppStore((state) => state.hoveredProject);
+  const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredItemId = useAppStore((state) => state.setHoveredItemId);
-  const isHovered = interactive && hoveredItemId === id;
+  const activeHoveredId =
+    viewMode === "graph" ? hoveredItemId : (hoveredProject ?? hoveredLog);
+  const isHovered = activeHoveredId === id;
+  const hasHoveredNode = activeHoveredId !== null;
+
+  useFrame((_, delta) => {
+    if (!nodeRef.current) return;
+    const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.8 : 1;
+    nodeRef.current.scale.x = THREE.MathUtils.damp(nodeRef.current.scale.x, targetScale, 8, delta);
+    nodeRef.current.scale.y = THREE.MathUtils.damp(nodeRef.current.scale.y, targetScale, 8, delta);
+    nodeRef.current.scale.z = THREE.MathUtils.damp(nodeRef.current.scale.z, targetScale, 8, delta);
+  });
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
     if (!interactive) return;
@@ -38,19 +53,21 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
 
   return (
     <Billboard position={position}>
-      <Text
-        color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
-        fontSize={isHovered ? 0.3 : interactive ? 0.2 : 0.24}
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={2.2}
-        textAlign="center"
-        scale={isHovered ? 1.35 : 1}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-      >
-        {label}
-      </Text>
+      <group ref={nodeRef}>
+        <Text
+          color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
+          fillOpacity={isHovered ? 1 : hasHoveredNode ? 0.35 : 0.8}
+          fontSize={interactive ? 0.2 : 0.24}
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={2.2}
+          textAlign="center"
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+        >
+          {label}
+        </Text>
+      </group>
     </Billboard>
   );
 };
