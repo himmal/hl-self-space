@@ -3,13 +3,12 @@ import { useFrame } from "@react-three/fiber";
 import { Sparkles } from "@react-three/drei";
 import * as THREE from "three";
 import { NeuralGrid } from "./NeuralGrid";
-import { CameraRig } from "./CameraRig";
+import { CameraController } from "./CameraController";
 import { RelationalGraph } from "./RelationalGraph";
 import { WarpParticles } from "./WarpParticles";
 import { AntigravityParticles } from "./AntigravityParticles";
 import { FRAGMENT_HUBS } from "./sceneData";
 import { useAppStore, type Section } from "../../store/useAppStore";
-import { useGlobalPointer } from "../../hooks/useGlobalPointer";
 
 // Section-themed grid palettes — a single muted slate/accent scheme shared
 // across all sections (see docs/ARCHITECTURE.md §5.2) so switching sections
@@ -23,7 +22,6 @@ const SECTION_PALETTES: Record<Section, { colorA: string; colorB: string; fog: s
 };
 
 export const Scene = () => {
-  const groupRef = useRef<THREE.Group>(null);
   const fogRef = useRef<THREE.FogExp2>(null);
   const activeSection = useAppStore((state) => state.activeSection);
   const palette = useMemo(
@@ -31,7 +29,6 @@ export const Scene = () => {
     [activeSection]
   );
   const targetFogColor = useMemo(() => new THREE.Color(palette.fog), [palette]);
-  const pointer = useGlobalPointer();
 
   useFrame((_state, delta) => {
     if (fogRef.current) {
@@ -39,29 +36,13 @@ export const Scene = () => {
       fogRef.current.color.lerp(targetFogColor, alpha);
     }
 
-    if (!groupRef.current) return;
-
-    // Subtle parallax tilt based on mouse position
-    const targetMouseX = (pointer.x * Math.PI) / 12;
-    const targetMouseY = (pointer.y * Math.PI) / 12;
-
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(
-      groupRef.current.rotation.y,
-      targetMouseX,
-      0.05
-    );
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(
-      groupRef.current.rotation.x,
-      -targetMouseY,
-      0.05
-    );
   });
 
   return (
     <>
-      <CameraRig />
+      <CameraController />
       <fogExp2 ref={fogRef} attach="fog" args={[palette.fog, 0.06]} />
-      <group ref={groupRef}>
+      <group>
         <NeuralGrid colorA={palette.colorA} colorB={palette.colorB} maxSize={5} />
         {/* Sparser, slower-rotating parallax layer for extra depth at near-zero cost */}
         <NeuralGrid
