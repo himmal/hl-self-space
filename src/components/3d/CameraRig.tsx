@@ -21,7 +21,7 @@ export const CameraRig = () => {
   const { camera } = useThree();
   const activeSection = useAppStore((state) => state.activeSection);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
-  const hoveredNode = useAppStore((state) => state.hoveredNode);
+  const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setTransitioning = useAppStore((state) => state.setTransitioning);
 
@@ -80,7 +80,7 @@ export const CameraRig = () => {
     // hovered project/blog node's position in 3D space.
     const hoveredAnchor =
       (hoveredProject && PROJECT_POSITIONS[hoveredProject]) ||
-      (hoveredNode && (PROJECT_POSITIONS[hoveredNode] || BLOG_POSITIONS[hoveredNode])) ||
+      (hoveredItemId && (PROJECT_POSITIONS[hoveredItemId] || BLOG_POSITIONS[hoveredItemId])) ||
       (hoveredLog && BLOG_POSITIONS[hoveredLog]) ||
       null;
 

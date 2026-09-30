@@ -38,7 +38,7 @@ const NAV_ITEMS: { id: Section; label: string }[] = [
 
 // Shared "passive background vs. active pop-out" card class logic (see the
 // Graph View spec: Phase 1 dims/desaturates cards and passes pointer events
-// through to the WebGL canvas while `viewMode === "canvas"`; Phase 2 forces
+// through to the WebGL canvas while `viewMode === "graph"`; Phase 2 forces
 // a card back to full prominence — regardless of `viewMode` — the instant
 // its `id` matches the hovered item, whether hovered via the DOM card itself
 // or via its corresponding 3D node in `RelationalGraph`).
@@ -46,7 +46,7 @@ const cardStateClasses = (viewMode: ViewMode, isHovered: boolean) => {
   if (isHovered) {
     return "pointer-events-auto scale-105 opacity-100 grayscale-0 ring-2 ring-cyan-400";
   }
-  return viewMode === "canvas"
+  return viewMode === "graph"
     ? "pointer-events-none opacity-50 grayscale-[50%]"
     : "pointer-events-auto opacity-100 grayscale-0";
 };
@@ -54,9 +54,9 @@ const cardStateClasses = (viewMode: ViewMode, isHovered: boolean) => {
 export const Overlay = () => {
   const activeSection = useAppStore((state) => state.activeSection);
   const viewMode = useAppStore((state) => state.viewMode);
+  const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const setHoveredProject = useAppStore((state) => state.setHoveredProject);
-  const hoveredNode = useAppStore((state) => state.hoveredNode);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredLog = useAppStore((state) => state.setHoveredLog);
   const markSectionVisited = useAppStore((state) => state.markSectionVisited);
@@ -115,9 +115,9 @@ export const Overlay = () => {
       <main
         className="ui-layer pt-24 transition-all duration-300 ease-in-out"
         style={{
-          zIndex: viewMode === "canvas" ? 10 : 50,
-          opacity: viewMode === "canvas" ? 0.3 : 1,
-          pointerEvents: viewMode === "canvas" ? "none" : "auto",
+          zIndex: viewMode === "graph" ? 10 : 50,
+          opacity: viewMode === "graph" ? 0.3 : viewMode === "particles" ? 0 : 1,
+          pointerEvents: viewMode === "graph" || viewMode === "particles" ? "none" : "auto",
         }}
       >
         {/* Intro Section */}
@@ -151,7 +151,7 @@ export const Overlay = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {demoData.projects.map((proj) => {
               const isHovered =
-                (hoveredProject ?? (viewMode === "canvas" ? hoveredNode : null)) === proj.id;
+                (hoveredProject ?? (viewMode === "graph" ? hoveredItemId : null)) === proj.id;
               return (
                 <div
                   key={proj.id}
@@ -207,7 +207,7 @@ export const Overlay = () => {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {demoData.blogs.map((entry) => {
               const isHovered =
-                (hoveredLog ?? (viewMode === "canvas" ? hoveredNode : null)) === entry.id;
+                (hoveredLog ?? (viewMode === "graph" ? hoveredItemId : null)) === entry.id;
               return (
                 <div
                   key={entry.id}

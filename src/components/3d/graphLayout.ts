@@ -93,3 +93,76 @@ export const computeSharedEdges = <T extends GraphSource>(
   }
   return edges;
 };
+
+export interface RadialTreeLayout {
+  root: [number, number, number];
+  tags: Record<string, [number, number, number]>;
+  items: Record<string, [number, number, number]>;
+  itemTags: Record<string, string>;
+  branches: { parent: string; child: string }[];
+}
+
+const stableDepth = (id: string) => {
+  let hash = 0;
+  for (const character of id) hash = (hash * 31 + character.charCodeAt(0)) | 0;
+  return (Math.abs(hash) % 11) - 5;
+};
+
+/**
+ * Builds a deterministic 2.5D radial tree: the root is centered, unique
+ * attributes form the first ring, and each item is clustered near its primary
+ * attribute on the outer ring.
+ */
+export const computeRadialTreeLayout = <T extends GraphSource>(
+  items: T[],
+  getAttrs: (item: T) => string[],
+  tagRadius = 8,
+  itemRadius = 16
+): RadialTreeLayout => {
+  const itemTags: Record<string, string> = {};
+  const tags = Array.from(
+    new Set(
+      items.flatMap((item) => {
+        const primaryTag = getAttrs(item)[0] ?? "Uncategorized";
+        itemTags[item.id] = primaryTag;
+        return primaryTag;
+      })
+    )
+  );
+  const tagAngles = new Map(tags.map((tag, index) => [tag, (index / Math.max(tags.length, 1)) * Math.PI * 2]));
+  const tagPositions: Record<string, [number, number, number]> = {};
+  tags.forEach((tag) => {
+    const angle = tagAngles.get(tag) ?? 0;
+    tagPositions[tag] = [Math.cos(angle) * tagRadius, Math.sin(angle) * tagRadius * 0.72, stableDepth(tag) * 0.35];
+  });
+
+  const groupedItems = new Map<string, T[]>();
+  items.forEach((item) => {
+    const tag = itemTags[item.id];
+    groupedItems.set(tag, [...(groupedItems.get(tag) ?? []), item]);
+  });
+  const itemPositions: Record<string, [number, number, number]> = {};
+  groupedItems.forEach((group, tag) => {
+    const baseAngle = tagAngles.get(tag) ?? 0;
+    group.forEach((item, index) => {
+      const offset = (index - (group.length - 1) / 2) * 0.16;
+      const angle = baseAngle + offset;
+      itemPositions[item.id] = [
+        Math.cos(angle) * itemRadius,
+        Math.sin(angle) * itemRadius * 0.72,
+        stableDepth(item.id),
+      ];
+    });
+  });
+
+  return {
+    root: [0, 0, 0],
+    tags: tagPositions,
+    items: itemPositions,
+    itemTags,
+    branches: [
+      ...tags.map((tag) => ({ parent: "__root__", child: tag })),
+      ...items.map((item) => ({ parent: itemTags[item.id], child: item.id })),
+    ],
+  };
+};
