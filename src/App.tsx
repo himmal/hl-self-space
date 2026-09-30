@@ -16,7 +16,7 @@ const NeuralGridExperience = () => {
     <>
       {/* 3D WebGL Canvas fixed to background — `.canvas-layer` sets
           `pointer-events: none` by default so scroll/click reaches the DOM
-          overlay underneath; in `"canvas"` view mode the Tailwind utility
+          overlay underneath; in `"graph"` view mode the Tailwind utility
           below (higher-specificity `@layer utilities`) re-enables pointer
           events so the `RelationalGraph` nodes can be hovered/raycast. */}
       <div

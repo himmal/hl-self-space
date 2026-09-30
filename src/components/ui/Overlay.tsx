@@ -57,7 +57,6 @@ export const Overlay = () => {
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
   const setHoveredProject = useAppStore((state) => state.setHoveredProject);
-  const hoveredNode = useAppStore((state) => state.hoveredNode);
   const hoveredLog = useAppStore((state) => state.hoveredLog);
   const setHoveredLog = useAppStore((state) => state.setHoveredLog);
   const markSectionVisited = useAppStore((state) => state.markSectionVisited);

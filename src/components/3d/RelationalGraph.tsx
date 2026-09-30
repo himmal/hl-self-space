@@ -103,8 +103,10 @@ export const RelationalGraph = () => {
   if (activeSection === "intro") return null;
 
   const isProjects = activeSection === "projects";
+  if (viewMode !== "graph") return null;
+
   return (
-    <group visible={viewMode === "graph"}>
+    <group>
       <Mindmap
         items={isProjects ? demoData.projects : demoData.blogs}
         tree={isProjects ? PROJECT_TREE : BLOG_TREE}
