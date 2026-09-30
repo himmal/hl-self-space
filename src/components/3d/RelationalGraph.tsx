@@ -19,6 +19,7 @@ interface GraphTextNodeProps {
 
 const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNodeProps) => {
   const nodeRef = useRef<THREE.Group>(null);
+  const textRef = useRef<THREE.Mesh>(null);
   const viewMode = useAppStore((state) => state.viewMode);
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const hoveredProject = useAppStore((state) => state.hoveredProject);
@@ -31,7 +32,9 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
 
   useFrame((_, delta) => {
     if (!nodeRef.current) return;
-    const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.8 : 1;
+    const targetScale = isHovered ? 1.6 : hasHoveredNode ? 0.9 : 1;
+    const targetOpacity =
+      viewMode === "graph" ? (isHovered ? 1 : hasHoveredNode ? 0.5 : 0.9) : isHovered ? 0.9 : 0.25;
     nodeRef.current.scale.x = THREE.MathUtils.damp(
       nodeRef.current.scale.x,
       targetScale,
@@ -50,6 +53,8 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
       8,
       delta
     );
+    const material = textRef.current?.material as THREE.Material & { opacity: number } | undefined;
+    if (material) material.opacity = THREE.MathUtils.damp(material.opacity, targetOpacity, 8, delta);
   });
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
@@ -70,9 +75,10 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
     <Billboard position={position}>
       <group ref={nodeRef}>
         <Text
+          ref={textRef}
           color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
-          fillOpacity={isHovered ? 1 : hasHoveredNode ? 0.35 : 0.8}
-          fontSize={interactive ? 0.2 : 0.24}
+          fillOpacity={1}
+          fontSize={1.5}
           anchorX="center"
           anchorY="middle"
           maxWidth={2.2}
@@ -145,21 +151,21 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   const viewMode = useAppStore((state) => state.viewMode);
   const { viewport } = useThree();
   const groupRef = useRef<THREE.Group>(null);
+  const layoutScale = Math.max(1, Math.min(viewport.width / 4, viewport.height / 3));
   const tree = useMemo(
     () =>
       computeRadialTreeLayout(data, (item) =>
         "tags" in item ? item.tags : item.keywords
-      ),
-    [data]
+      , 2.4 * layoutScale, 4.8 * layoutScale),
+    [data, layoutScale]
   );
-  const scale = Math.min(1, viewport.width / 20);
 
   useEffect(() => {
     if (groupRef.current) groupRef.current.visible = viewMode !== "particles";
   }, [viewMode]);
 
   return (
-    <group ref={groupRef} scale={scale}>
+    <group ref={groupRef}>
       <Mindmap
         items={data}
         tree={tree}
