@@ -26,7 +26,7 @@ export const StatusHUD = () => {
   );
 
   return (
-    <div className="fixed right-4 bottom-4 z-30 flex flex-col gap-1 border border-[var(--color-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase backdrop-blur-md">
+    <div className="fixed right-4 bottom-4 z-[100] flex flex-col gap-1 border border-[var(--color-border)] bg-black/50 px-3 py-2 text-[10px] tracking-widest text-[var(--color-accent)] uppercase backdrop-blur-md">
       <span>
         Sections Visited: {visitedSections.length}/{SECTIONS.length}
       </span>
