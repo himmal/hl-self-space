@@ -4,20 +4,22 @@ import { type ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { type BlogItem, type ProjectItem } from "../../data/portfolioData";
 import { useAppStore } from "../../store/useAppStore";
-import { computeRadialTreeLayout, type RadialTreeLayout } from "./graphLayout";
+import { computeRadialTreeLayout, getRadialTreeFitScale, type RadialTreeLayout } from "./graphLayout";
 
 const DEFAULT_COLOR = "#38bdf8";
 const TAG_COLOR = "#94a3b8";
 const HOVER_COLOR = "#fbbf24";
+const BASE_TEXT_SIZE = 0.5;
 
 interface GraphTextNodeProps {
   id: string;
   label: string;
   position: [number, number, number];
   interactive?: boolean;
+  fontSize: number;
 }
 
-const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNodeProps) => {
+const GraphTextNode = ({ id, label, position, interactive = false, fontSize }: GraphTextNodeProps) => {
   const nodeRef = useRef<THREE.Group>(null);
   const textRef = useRef<THREE.Mesh>(null);
   const viewMode = useAppStore((state) => state.viewMode);
@@ -64,7 +66,7 @@ const GraphTextNode = ({ id, label, position, interactive = false }: GraphTextNo
           ref={textRef}
           color={isHovered ? HOVER_COLOR : interactive ? DEFAULT_COLOR : TAG_COLOR}
           fillOpacity={1}
-          fontSize={1.5}
+          fontSize={fontSize}
           anchorX="center"
           anchorY="middle"
           maxWidth={2.2}
@@ -84,6 +86,7 @@ interface MindmapProps<T extends ProjectItem | BlogItem> {
   tree: RadialTreeLayout;
   rootLabel: string;
   interactive: boolean;
+  fontSize: number;
 }
 
 const Mindmap = <T extends ProjectItem | BlogItem>({
@@ -91,6 +94,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
   tree,
   rootLabel,
   interactive,
+  fontSize,
 }: MindmapProps<T>) => {
   const hoveredItemId = useAppStore((state) => state.hoveredItemId);
   const pointsFor = (id: string): [number, number, number] =>
@@ -98,9 +102,9 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
 
   return (
     <group>
-      <GraphTextNode id="__root__" label={rootLabel} position={tree.root} />
+      <GraphTextNode id="__root__" label={rootLabel} position={tree.root} fontSize={fontSize} />
       {Object.entries(tree.tags).map(([tag, position]) => (
-        <GraphTextNode key={tag} id={tag} label={tag} position={position} />
+        <GraphTextNode key={tag} id={tag} label={tag} position={position} fontSize={fontSize} />
       ))}
       {items.map((item) => (
         <GraphTextNode
@@ -109,6 +113,7 @@ const Mindmap = <T extends ProjectItem | BlogItem>({
           label={item.title || item.id}
           position={tree.items[item.id]}
           interactive={interactive}
+          fontSize={fontSize}
         />
       ))}
       {tree.branches.map(({ parent, child }) => {
@@ -137,17 +142,19 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   const viewMode = useAppStore((state) => state.viewMode);
   const { viewport } = useThree();
   const groupRef = useRef<THREE.Group>(null);
-  const layoutScale = Math.max(1, Math.min(viewport.width / 4, viewport.height / 3));
   const tree = useMemo(
     () =>
       computeRadialTreeLayout(
         data,
         (item) => ("tags" in item ? item.tags : item.keywords),
-        2.4 * layoutScale,
-        4.8 * layoutScale
+        2.4,
+        4.8
       ),
-    [data, layoutScale]
+    [data]
   );
+  // Frustum fitting scales the stable layout against the live R3F viewport,
+  // rather than changing its radii with viewport-specific magic numbers.
+  const fitScale = getRadialTreeFitScale(tree, viewport.width, viewport.height);
 
   useEffect(() => {
     if (groupRef.current) groupRef.current.visible = viewMode !== "particles";
@@ -155,7 +162,15 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
 
   return (
     <group ref={groupRef}>
-      <Mindmap items={data} tree={tree} rootLabel={rootLabel} interactive={viewMode === "graph"} />
+      <group scale={fitScale}>
+        <Mindmap
+          items={data}
+          tree={tree}
+          rootLabel={rootLabel}
+          interactive={viewMode === "graph"}
+          fontSize={BASE_TEXT_SIZE / fitScale}
+        />
+      </group>
     </group>
   );
 };
