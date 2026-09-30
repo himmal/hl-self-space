@@ -31,13 +31,23 @@ export const CameraController = () => {
     const selectedId = viewMode === "dom" ? (hoveredProject ?? hoveredLog) : null;
     const selectedPosition = selectedId ? tree.items[selectedId] : undefined;
     const targetX =
-      (selectedPosition?.[0] ?? 0) * fitScale + pointer.x * PARALLAX_DISTANCE;
+      (selectedPosition?.[0] ?? 0) * fitScale +
+      (viewMode === "dom" || viewMode === "particles" ? pointer.x * PARALLAX_DISTANCE : 0);
     const targetY =
-      (selectedPosition?.[1] ?? 0) * fitScale + pointer.y * PARALLAX_DISTANCE;
+      (selectedPosition?.[1] ?? 0) * fitScale +
+      (viewMode === "dom" || viewMode === "particles" ? pointer.y * PARALLAX_DISTANCE : 0);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, CAMERA_Z, 6, delta);
     camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 6, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 6, delta);
-    camera.lookAt(0, 0, 0);
+    if (viewMode === "dom" && selectedPosition) {
+      camera.lookAt(
+        selectedPosition[0] * fitScale,
+        selectedPosition[1] * fitScale,
+        selectedPosition[2] * fitScale
+      );
+    } else {
+      camera.lookAt(0, 0, 0);
+    }
   });
 
   return null;
