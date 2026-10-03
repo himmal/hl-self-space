@@ -188,8 +188,8 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
   // Frustum fitting scales the stable layout against the live R3F viewport,
   // rather than changing its radii with viewport-specific magic numbers.
   const fitScale = getRadialTreeFitScale(tree, viewport.width, viewport.height);
-  // Text is measured before the parent fit scale is applied, so compensate
-  // for that scale while keeping the rendered wrap width tied to the viewport.
+  // Text width is measured before the parent fit scale is applied, so
+  // compensate for that scale while keeping wrapping tied to the viewport.
   const textMaxWidth = Math.max(0.8, viewport.width / 5 / fitScale);
 
   useEffect(() => {
@@ -204,7 +204,7 @@ export const RelationalGraph = ({ data, rootLabel }: RelationalGraphProps) => {
           tree={tree}
           rootLabel={rootLabel}
           interactive={viewMode === "graph"}
-          fontSize={BASE_TEXT_SIZE / fitScale}
+          fontSize={BASE_TEXT_SIZE}
           maxWidth={textMaxWidth}
         />
       </group>
