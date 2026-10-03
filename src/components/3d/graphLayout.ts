@@ -13,6 +13,9 @@ export interface GraphSource {
 
 const ITERATIONS = 160;
 const RELAX_STEP = 0.05;
+// Keep labels in the same attribute cluster far enough apart to remain
+// readable when the graph is viewed as a mindmap.
+const ITEM_ANGLE_STEP = 0.6;
 // Baseline separation for items sharing no attributes — keeps unrelated
 // bubbles from ever overlapping, while shared-attribute pairs relax closer.
 const BASE_SEPARATION = 1.9;
@@ -162,7 +165,7 @@ export const computeRadialTreeLayout = <T extends GraphSource>(
   groupedItems.forEach((group, tag) => {
     const baseAngle = tagAngles.get(tag) ?? 0;
     group.forEach((item, index) => {
-      const offset = (index - (group.length - 1) / 2) * 0.16;
+      const offset = (index - (group.length - 1) / 2) * ITEM_ANGLE_STEP;
       const angle = baseAngle + offset;
       itemPositions[item.id] = [
         Math.cos(angle) * itemRadius,
